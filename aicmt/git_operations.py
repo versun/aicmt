@@ -18,7 +18,6 @@ class Change(NamedTuple):
 
 
 class GitOperations:
-
     def __init__(self, repo_path: str = "."):
         """Initialize GitOperations with a repository path
 
@@ -33,8 +32,7 @@ class GitOperations:
             self.repo = Repo(repo_path)
             self.git = self.repo.git
         except git.InvalidGitRepositoryError:
-            raise git.InvalidGitRepositoryError(
-                f"'{repo_path}' is not a valid Git repository")
+            raise git.InvalidGitRepositoryError(f"'{repo_path}' is not a valid Git repository")
         except git.NoSuchPathError:
             raise git.NoSuchPathError(f"Path '{repo_path}' does not exist")
 
@@ -78,8 +76,7 @@ class GitOperations:
                                     status = "new file (binary)"
                                 else:
                                     # file is not binary
-                                    with open(file_path, "r",
-                                              encoding="utf-8") as f:
+                                    with open(file_path, "r", encoding="utf-8") as f:
                                         diff = f.read()
                                     status = "new file"
                         except UnicodeDecodeError:
@@ -90,10 +87,8 @@ class GitOperations:
                         status = "error"
 
                 # Count insertions and deletions
-                insertions = len(
-                    [i_l for i_l in diff.split("\n") if i_l.startswith("+")])
-                deletions = len(
-                    [d_l for d_l in diff.split("\n") if d_l.startswith("-")])
+                insertions = len([i_l for i_l in diff.split("\n") if i_l.startswith("+")])
+                deletions = len([d_l for d_l in diff.split("\n") if d_l.startswith("-")])
 
                 changes.append(
                     Change(
@@ -102,11 +97,10 @@ class GitOperations:
                         diff=diff,
                         insertions=insertions,
                         deletions=deletions,
-                    ))
-            except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]"
+                    )
                 )
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]")
 
         return changes
 
@@ -122,8 +116,7 @@ class GitOperations:
         try:
             self.repo.index.add(files)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to stage files: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to stage files: {str(e)}", e.status, e.stderr)
 
     def commit_changes(self, message: str) -> None:
         """Create a commit with the staged changes
@@ -137,12 +130,9 @@ class GitOperations:
         try:
             self.repo.index.commit(message)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to commit changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to commit changes: {str(e)}", e.status, e.stderr)
 
-    def push_changes(self,
-                     remote: str = "origin",
-                     branch: Optional[str] = None) -> None:
+    def push_changes(self, remote: str = "origin", branch: Optional[str] = None) -> None:
         """Push commits to remote repository
 
         Args:
@@ -158,8 +148,7 @@ class GitOperations:
             origin = self.repo.remote(remote)
             origin.push(branch)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to push changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to push changes: {str(e)}", e.status, e.stderr)
 
     def get_current_branch(self) -> str:
         """Get the name of the current branch
@@ -173,8 +162,7 @@ class GitOperations:
         try:
             return self.repo.active_branch.name
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get current branch: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get current branch: {str(e)}", e.status, e.stderr)
 
     def checkout_branch(self, branch_name: str, create: bool = False) -> None:
         """Checkout a branch
@@ -191,8 +179,7 @@ class GitOperations:
                 self.repo.create_head(branch_name)
             self.repo.git.checkout(branch_name)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}", e.status, e.stderr)
 
     def get_commit_history(self, max_count: int = 10) -> List[Dict]:
         """Get commit history
@@ -209,13 +196,14 @@ class GitOperations:
         try:
             commits = []
             for commit in self.repo.iter_commits(max_count=max_count):
-                commits.append({
-                    "hash": commit.hexsha,
-                    "message": commit.message.strip(),
-                    "author": str(commit.author),
-                    "date": commit.committed_datetime.isoformat(),
-                })
+                commits.append(
+                    {
+                        "hash": commit.hexsha,
+                        "message": commit.message.strip(),
+                        "author": str(commit.author),
+                        "date": commit.committed_datetime.isoformat(),
+                    }
+                )
             return commits
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get commit history: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get commit history: {str(e)}", e.status, e.stderr)

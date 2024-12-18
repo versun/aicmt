@@ -79,8 +79,7 @@ def test_stage_files(temp_git_repo):
         # Verify that the file is correctly staged
         assert "stage_test.txt" not in untracked
         # Directly check if the file name is in the index
-        assert any("stage_test.txt" in str(entry)
-                   for entry in git_ops.repo.index.entries.keys())
+        assert any("stage_test.txt" in str(entry) for entry in git_ops.repo.index.entries.keys())
     finally:
         # Restore the original directory
         os.chdir(current_dir)
@@ -139,8 +138,7 @@ def test_get_commit_history(temp_git_repo):
             git_ops.stage_files([f"history_test_{i}.txt"])
             git_ops.commit_changes(f"Test commit {i}")
 
-        history = git_ops.get_commit_history(
-            max_count=4)  # Modified to 4 to get all commits
+        history = git_ops.get_commit_history(max_count=4)  # Modified to 4 to get all commits
         assert len(history) == 4  # 3 new commits + 1 initial commit
     finally:
         # Restore the original directory

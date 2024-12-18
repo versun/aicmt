@@ -3,11 +3,7 @@ from aicmt.config import _merge_configs, _parse_config_file, validate_config, _l
 
 
 def test_merge_configs():
-    base = {
-        "api_key": "test_key",
-        "model": "gpt-3.5-turbo",
-        "analysis_prompt": "Default analysis prompt"
-    }
+    base = {"api_key": "test_key", "model": "gpt-3.5-turbo", "analysis_prompt": "Default analysis prompt"}
     override = {"api_key": "new_key", "base_url": "https://custom.openai.com"}
 
     result = _merge_configs(base, override)
@@ -38,34 +34,13 @@ analysis_prompt = Test analysis prompt
 
 
 def test_validate_config():
-    valid_config = {
-        "api_key": "test_key",
-        "model": "gpt-4",
-        "base_url": "https://api.openai.com/v1",
-        "analysis_prompt": "Test analysis prompt"
-    }
+    valid_config = {"api_key": "test_key", "model": "gpt-4", "base_url": "https://api.openai.com/v1", "analysis_prompt": "Test analysis prompt"}
     validate_config(valid_config)
 
-    invalid_config_without_model = {
-        "api_key": "test_key",
-        "base_url": "https://api.openai.com/v1",
-        "analysis_prompt": "Test analysis prompt"
-    }
-    invalid_config_without_api_key = {
-        "model": "gpt-4",
-        "base_url": "https://api.openai.com/v1",
-        "analysis_prompt": "Test analysis prompt"
-    }
-    invalid_config_without_base_url = {
-        "api_key": "test_key",
-        "model": "gpt-4",
-        "analysis_prompt": "Test analysis prompt"
-    }
-    invalid_config_without_prompt = {
-        "api_key": "test_key",
-        "model": "gpt-4",
-        "base_url": "https://api.openai.com/v1"
-    }
+    invalid_config_without_model = {"api_key": "test_key", "base_url": "https://api.openai.com/v1", "analysis_prompt": "Test analysis prompt"}
+    invalid_config_without_api_key = {"model": "gpt-4", "base_url": "https://api.openai.com/v1", "analysis_prompt": "Test analysis prompt"}
+    invalid_config_without_base_url = {"api_key": "test_key", "model": "gpt-4", "analysis_prompt": "Test analysis prompt"}
+    invalid_config_without_prompt = {"api_key": "test_key", "model": "gpt-4", "base_url": "https://api.openai.com/v1"}
 
     with pytest.raises(ValueError):
         validate_config(invalid_config_without_model)
@@ -130,7 +105,6 @@ analysis_prompt = Test analysis prompt
 
 
 def test_load_config_file_both_configs(tmp_path, monkeypatch):
-
     # set up global config
     global_config = tmp_path / ".aicmtrc"
     global_config_content = """
@@ -209,12 +183,7 @@ analysis_prompt = local prompt
     # set command line config
     monkeypatch.setattr(
         "aicmt.config._load_cli_config",
-        lambda: {
-            "api_key": "cli_key",
-            "model": "cli model",
-            "base_url": "https://cli.openai.com",
-            "analysis_prompt": "cli prompt"
-        },
+        lambda: {"api_key": "cli_key", "model": "cli model", "base_url": "https://cli.openai.com", "analysis_prompt": "cli prompt"},
     )
 
     result = load_config()

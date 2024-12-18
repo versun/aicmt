@@ -8,14 +8,10 @@ console = Console()
 
 # Default configuration settings for OpenAI API integration and prompt templates
 _DEFAULT_CONFIG = {
-    "base_url":
-    "https://api.openai.com/v1",
-    "api_key":
-    "api_key",
-    "model":
-    "gpt-4o-mini",
-    "analysis_prompt":
-    """
+    "base_url": "https://api.openai.com/v1",
+    "api_key": "api_key",
+    "model": "gpt-4o-mini",
+    "analysis_prompt": """
 You are a Git commit expert who must analyze code changes and provide commit suggestions.
 Requirements:
 1. Group related changes together logically
@@ -37,8 +33,7 @@ Respond strictly in this JSON format:
 }
 
 
-def _merge_configs(base: Dict[str, Any],
-                   override: Dict[str, Any]) -> Dict[str, Any]:
+def _merge_configs(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merge two configuration dictionaries while preserving existing values in the base dictionary.
 
@@ -63,11 +58,10 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
     try:
         # Create ConfigParser with multiline value support
         config = configparser.ConfigParser(
-            interpolation=
-            None,  # Disable interpolation to preserve prompt templates
+            interpolation=None,  # Disable interpolation to preserve prompt templates
             inline_comment_prefixes=("#", ";"),
             comment_prefixes=("#", ";"),
-            delimiters=("=", ),  # Only use = as delimiter for clarity
+            delimiters=("=",),  # Only use = as delimiter for clarity
         )
 
         # Read the configuration file with UTF-8 encoding
@@ -96,8 +90,7 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
                             if line.strip():
                                 indent = len(line) - len(line.lstrip())
                                 min_indent = min(min_indent, indent)
-                        min_indent = 0 if min_indent == float(
-                            "inf") else min_indent
+                        min_indent = 0 if min_indent == float("inf") else min_indent
 
                         # Process lines preserving formatting
                         processed_lines = []
@@ -116,7 +109,8 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
             "[yellow]Please check the following:[/yellow]\n"
             "1. Ensure the config file format is correct\n"
             "2. Check if all configuration items have correct section tags (e.g., [openai], [prompts])\n"
-            "3. Ensure the file is saved with UTF-8 encoding")
+            "3. Ensure the file is saved with UTF-8 encoding"
+        )
     except Exception as e:
         console.print(
             f"[yellow]Warning: Unexpected error occurred while reading config file {config_path}[/yellow]\n"
@@ -211,34 +205,38 @@ def validate_config(config: Dict[str, Any]):
 
     # Check for openai section
     required_fields = ["base_url", "model", "api_key", "analysis_prompt"]
-    missing_fields = [
-        field for field in required_fields if field not in config
-    ]
+    missing_fields = [field for field in required_fields if field not in config]
 
     # API key validation
     if "api_key" in missing_fields:
-        raise ValueError("OpenAI API key not configured. To fix this:\n"
-                         "1. Use --api-key command line argument\n"
-                         "   Example: --api-key=your-api-key-here\n"
-                         "2. Or add to .aicmtrc file:\n"
-                         "   [openai]\n"
-                         "   api_key = your-api-key-here")
+        raise ValueError(
+            "OpenAI API key not configured. To fix this:\n"
+            "1. Use --api-key command line argument\n"
+            "   Example: --api-key=your-api-key-here\n"
+            "2. Or add to .aicmtrc file:\n"
+            "   [openai]\n"
+            "   api_key = your-api-key-here"
+        )
 
     if "model" in missing_fields:
-        raise ValueError("No model specified. To fix this:\n"
-                         "1. Use --model command line argument\n"
-                         "   Example: --model=gpt-4o-mini\n"
-                         "2. Or add to .aicmtrc file:\n"
-                         "   [openai]\n"
-                         "   model = gpt-4o-mini")
+        raise ValueError(
+            "No model specified. To fix this:\n"
+            "1. Use --model command line argument\n"
+            "   Example: --model=gpt-4o-mini\n"
+            "2. Or add to .aicmtrc file:\n"
+            "   [openai]\n"
+            "   model = gpt-4o-mini"
+        )
 
     if "base_url" in missing_fields:
-        raise ValueError("No base URL specified. To fix this:\n"
-                         "1. Use --base-url command line argument\n"
-                         "   Example: --base-url=https://your-base-url.com\n"
-                         "2. Or add to .aicmtrc file:\n"
-                         "   [openai]\n"
-                         "   base_url = https://your-base-url.com")
+        raise ValueError(
+            "No base URL specified. To fix this:\n"
+            "1. Use --base-url command line argument\n"
+            "   Example: --base-url=https://your-base-url.com\n"
+            "2. Or add to .aicmtrc file:\n"
+            "   [openai]\n"
+            "   base_url = https://your-base-url.com"
+        )
 
     if "analysis_prompt" in missing_fields:
         raise ValueError(
@@ -247,7 +245,8 @@ def validate_config(config: Dict[str, Any]):
             "   Example: --analysis-prompt=Your analysis prompt here\n"
             "2. Or add to .aicmtrc file:\n"
             "   [prompts]\n"
-            "   analysis_prompt = Your analysis prompt here")
+            "   analysis_prompt = Your analysis prompt here"
+        )
 
     # Base URL validation
     base_url = config.get("base_url")
@@ -258,12 +257,11 @@ def validate_config(config: Dict[str, Any]):
             "1. Start with http:// or https://\n"
             "2. Be a valid URL\n"
             "Example: https://api.openai.com/v1\n"
-            "Current source tags will be preserved after validation")
+            "Current source tags will be preserved after validation"
+        )
 
     # Prompt validation with enhanced feedback
     prompt = config.get("analysis_prompt")
     if prompt:
         if len(prompt.strip()) < 10:
-            console.print(f"[yellow]Warning: analysis prompt is too short "
-                          f"({len(prompt.strip())} characters), "
-                          "this may affect analysis quality[/yellow]")
+            console.print(f"[yellow]Warning: analysis prompt is too short " f"({len(prompt.strip())} characters), " "this may affect analysis quality[/yellow]")

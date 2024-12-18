@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import Mock, patch
-from rich.console import Console
+from unittest.mock import patch
 from aicmt.cli import GitCommitAssistant, cli
 
 
