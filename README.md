@@ -1,7 +1,9 @@
 [English](./README.md) | [中文](./README_CN.md)
 # AI Commit (aicmt)
 
-An intelligent Git commit assistant that not only generates commit messages, but also automatically analyzes and splits your code changes into multiple well-organized commits following best practices.
+An AI-powered Git commit assistant that not only generates commit messages, but also automatically analyzes and splits your code changes into multiple well-organized commits following best practices.
+
+[![aicmt](https://asciinema.org/a/695352.svg)](https://asciinema.org/a/695352/?autoplay=1)
 
 ## Features
 
@@ -83,3 +85,17 @@ If the issue persists, please submit an issue, and I will consult AI to resolve 
 ## Contributing
 
 Pull requests are welcome!
+
+## A Big Thank You to My Sponsors
+I am deeply grateful to my amazing supporters and sponsors who have made my open source journey possible.   
+<p align="center">
+  <a href="https://github.com/versun/sponsors/">
+    <img src='https://raw.githubusercontent.com/versun/sponsors/main/sponsors.svg'/>
+  </a>
+</p>
+
+Become a Sponser on [Github](https://github.com/sponsors/versun) / [爱发电](https://afdian.com/@versun) / [微信](https://github.com/versun/sponsors/blob/b11431cb1302a4605f8e92447aaa061cbe704b68/wechat.jpg)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=versun/aicmt&type=Date)](https://star-history.com/#versun/aicmt&Date)

@@ -1,7 +1,9 @@
 [English](./README.md) | [中文](./README_CN.md)
 # AI Commit (aicmt)
 
-一个智能的Git提交助手，不仅能生成提交信息，还能自动分析并将您的代码变更按最佳实践拆分为多个结构良好的提交。
+一个AI驱动的Git提交助手，不仅能生成提交信息，还能自动分析并将您的代码变更按最佳实践拆分为多个结构良好的提交。
+
+[![aicmt](https://asciinema.org/a/695352.svg)](https://asciinema.org/a/695352/?autoplay=1)
 
 ## 功能特点
 
@@ -83,3 +85,17 @@ pip install ".[dev]"
 ## 贡献
 
 欢迎提交拉取请求！
+
+## A Big Thank You to My Sponsors
+I am deeply grateful to my amazing supporters and sponsors who have made my open source journey possible.   
+<p align="center">
+  <a href="https://github.com/versun/sponsors/">
+    <img src='https://raw.githubusercontent.com/versun/sponsors/main/sponsors.svg'/>
+  </a>
+</p>
+
+Become a Sponser on [Github](https://github.com/sponsors/versun) / [爱发电](https://afdian.com/@versun) / [微信](https://github.com/versun/sponsors/blob/b11431cb1302a4605f8e92447aaa061cbe704b68/wechat.jpg)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=versun/aicmt&type=Date)](https://star-history.com/#versun/aicmt&Date)
