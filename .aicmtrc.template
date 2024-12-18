@@ -1,0 +1,47 @@
+
+################################################
+# AICMT (AI Commit) Configuration Template
+#
+# Configuration File Location and Priority:
+# 1. Global Config: ~/.aicmtrc
+#    - Default settings for all projects
+#    - Typically stores API keys and common configs
+#
+# 2. Project Config: ./.aicmtrc (current directory)
+#    - Specific to current project
+#    - Higher priority than global config
+#    - Suitable for project-specific prompts and settings
+#
+# Usage:
+# 1. Copy this template to desired location (global or project directory)
+# 2. Rename file to .aicmtrc
+# 3. Modify configuration as needed
+#
+# Important Notes:
+# - File must be saved with UTF-8 encoding
+# - Configuration names are case-sensitive
+################################################
+
+[openai]
+api_key = your_openai_api_key
+base_url = https://api.openai.com/v1
+model = gpt-4o-mini
+
+[prompts]
+analysis_prompt = You are a Git commit expert who must analyze code changes and provide commit suggestions.
+    Requirements:
+    1. Group related changes together logically
+    2. Use conventional commits format for messages (e.g., feat:, fix:, docs:)
+    3. Keep commits reasonably sized
+    4. Provide clear descriptions of why changes are grouped together
+    
+    Respond strictly in this JSON format:
+    {
+      "commit_groups": [
+        {
+          "files": ["file1", "file2"],
+          "commit_message": "feat: add feature",
+          "description": "These changes implement certain functionality"
+        }
+      ]
+    }

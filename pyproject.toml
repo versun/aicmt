@@ -1,0 +1,42 @@
+[project]
+name = "aicmt"
+description = "An intelligent Git commit assistant that not only generates commit messages, but also automatically analyzes and splits your code changes into multiple well-organized commits following best practices."
+authors = [{name="Versun",email="aicmt@versun.me"}]
+maintainers = [{name="Versun",email="aicmt@versun.me"}]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT License"}
+keywords = ["aicmt", "ai commit", "ai git commit", "git", "commit", "message", "change", "code","ai", "intelligence", "intelligent", "automated", "assistant"]
+dependencies = [
+    "gitpython",
+    "openai",
+    "rich",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aicmt"]
+exclude = ["tests*"]
+
+[tool.hatch.version]
+path = "aicmt/__version__.py"
+
+[project.scripts]
+aicmt = "aicmt.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/versun/aicmt"
+Repository = "https://github.com/versun/aicmt.git"
+Issues = "https://github.com/versun/aicmt/issues"
+
+
