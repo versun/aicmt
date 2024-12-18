@@ -1,7 +1,7 @@
 [English](./README.md) | [中文](./README_CN.md)
 # AI Commit (aicmt)
 
-一个AI驱动的Git提交助手，不仅能生成提交信息，还能自动分析并将您的代码变更按最佳实践拆分为多个结构良好的提交。
+一个AI驱动的Git提交助手，不仅能自动生成提交信息，还能自动分析代码变更，并根据最佳实践将其拆分为多个结构良好的提交。
 
 [![aicmt](https://asciinema.org/a/695352.svg)](https://asciinema.org/a/695352/?autoplay=1)
 
