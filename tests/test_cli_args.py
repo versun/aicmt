@@ -9,12 +9,14 @@ def test_default_args():
         args = parse_args()
         assert args.num_commits is None
 
+
 def test_num_commits():
     """Test parsing number of commits argument."""
     test_num = 5
     with patch("sys.argv", ["script.py", "--num-commits", str(test_num)]):
         args = parse_args()
         assert args.num_commits == test_num
+
 
 def test_version():
     """Test version argument raises SystemExit."""
