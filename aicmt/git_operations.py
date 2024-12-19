@@ -115,12 +115,12 @@ class GitOperations:
         """
         try:
             # Get current status of files
-            status = self.repo.git.status('--porcelain').splitlines()
-            
+            status = self.repo.git.status("--porcelain").splitlines()
+
             for file in files:
                 # Find status for this file
                 file_status = next((s for s in status if s.split()[-1] == file), None)
-                if file_status and file_status.startswith(' D'):
+                if file_status and file_status.startswith(" D"):
                     # File is deleted, use remove
                     self.repo.index.remove([file])
                 else:
