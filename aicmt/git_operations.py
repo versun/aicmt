@@ -114,7 +114,18 @@ class GitOperations:
             git.GitCommandError: If there is an error staging the files
         """
         try:
-            self.repo.index.add(files)
+            # Get current status of files
+            status = self.repo.git.status('--porcelain').splitlines()
+            
+            for file in files:
+                # Find status for this file
+                file_status = next((s for s in status if s.split()[-1] == file), None)
+                if file_status and file_status.startswith(' D'):
+                    # File is deleted, use remove
+                    self.repo.index.remove([file])
+                else:
+                    # File is modified or new, use add
+                    self.repo.index.add([file])
         except git.GitCommandError as e:
             raise git.GitCommandError(f"Failed to stage files: {str(e)}", e.status, e.stderr)
 
