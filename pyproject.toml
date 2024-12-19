@@ -18,6 +18,7 @@ dynamic = ["version"]
 dev = [
     "ruff",
     "pytest",
+    "pytest-cov",
 ]
 
 [build-system]
@@ -39,4 +40,21 @@ Homepage = "https://github.com/versun/aicmt"
 Repository = "https://github.com/versun/aicmt.git"
 Issues = "https://github.com/versun/aicmt/issues"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=aicmt --cov-report=term-missing --cov-report=html --cov-fail-under=80"
 
+[tool.coverage.run]
+source = ["aicmt"]
+omit = ["tests/*", "**/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+    "raise ImportError",
+]

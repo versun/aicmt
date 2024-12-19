@@ -129,27 +129,19 @@ def _load_config_file() -> Dict[str, Any]:
     1. Local configuration (./.aicmtrc)
     2. Global configuration (~/.aicmtrc)
     """
-    import logging
-
-    logger = logging.getLogger(__name__)
 
     # Define configuration paths with priority
     global_config_path = Path.home() / ".aicmtrc"
     local_config_path = Path.cwd() / ".aicmtrc"
 
-    logger.info("\nLoading configuration files...")
-
     # First try local configuration (higher priority)
     if local_config_path.exists() and local_config_path.is_file():
-        logger.info(f"Found local configuration: {local_config_path}")
         return _parse_config_file(local_config_path)
 
     # Then try global configuration (lower priority)
     if global_config_path.exists() and global_config_path.is_file():
-        logger.info(f"Found global configuration: {global_config_path}")
         return _parse_config_file(global_config_path)
 
-    logger.info("No configuration files found.")
     return {}
 
 
@@ -159,12 +151,6 @@ def _load_cli_config() -> Dict[str, Any]:
 
     cli_config = {}
 
-    # if args.api_key is not None:
-    #     cli_config["api_key"] = args.api_key
-    # if args.base_url is not None:
-    #     cli_config["base_url"] = args.base_url
-    # if args.model is not None:
-    #     cli_config["model"] = args.model
     if args.num_commits is not None:
         cli_config["num_commits"] = args.num_commits
     return cli_config
@@ -217,10 +203,7 @@ def validate_config(config: Dict[str, Any]):
 
     if "model" in missing_fields:
         raise ValueError(
-            "No model specified. To fix this:\n"
-            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
-            "   [openai]\n"
-            "   model = gpt-4o-mini"
+            "No model specified. To fix this:\n" "add below configuration to .aicmtrc or ~/.aicmtrc file:\n" "   [openai]\n" "   model = gpt-4o-mini"
         )
 
     if "base_url" in missing_fields:
