@@ -19,35 +19,8 @@ Requires Python 3.10 or higher.
 pip install aicmt
 ```
 
-## Quick Start (Command Line Arguments Mode)
+## Quick Start 
 
-In your git repository directory, run:
-```bash
-aicmt --api-key <API_KEY> --model <MODEL> --base-url <OPENAI_BASE_URL>
-```
-
-To specify the number of commits to generate(default: AI decides):
-```bash
-aicmt --api-key <API_KEY> --model <MODEL> -n 3  # Split changes into 3 commits
-```
-
-## Help
-```bash
-$ aicmt -h
-usage: aicmt [-h] [-v] [--api-key KEY] [--base-url URL] [--model MODEL] [-n N]
-
-<<< AICMT (AI Commit) - AI-powered Git commit assistant >>>
-
-options:
-  -h, --help           show this help message and exit
-  -v, --version        show program's version number and exit
-  --api-key KEY        OpenAI API key for authentication
-  --base-url URL       Custom API base URL (default: https://api.openai.com/v1)
-  --model MODEL        AI model to use (default: gpt-4o-mini)
-  -n, --num-commits N  Number of commits to generate (default: AI decides)
-```
-
-## Configuration File Mode
 
 1. Create configuration file `.aicmtrc`
 
@@ -64,6 +37,19 @@ touch .aicmtrc
 2. Add OpenAI API and other information in the configuration file.
 
 3. Enter your git repository directory and run the `aicmt` command to automatically analyze changes and generate commit messages.
+
+## Help
+```bash
+$ aicmt -h
+usage: aicmt [-h] [-v] [-n N]
+
+<<< AICMT (AI Commit) - AI-powered Git commit assistant >>>
+
+options:
+  -h, --help           show this help message and exit
+  -v, --version        show program's version number and exit
+  -n, --num-commits N  Number of commits to generate (default: AI decides)
+```
 
 ## Development
 

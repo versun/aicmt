@@ -19,35 +19,7 @@
 pip install aicmt
 ```
 
-## 快速开始（命令行参数模式）
-
-在git仓库目录下，执行：
-```bash
-aicmt --api-key <API_KEY> --model <MODEL> --base-url <OPENAI_BASE_URL>
-```
-
-指定生成的提交数量（默认AI决定）：
-```bash
-aicmt --api-key <API_KEY> --model <MODEL> -n 3  # 将变更拆分为3个提交
-```
-
-## 帮助：
-```bash
-$ aicmt -h
-usage: aicmt [-h] [-v] [--api-key KEY] [--base-url URL] [--model MODEL] [-n N]
-
-<<< AICMT (AI Commit) - AI-powered Git commit assistant >>>
-
-options:
-  -h, --help           show this help message and exit
-  -v, --version        show program's version number and exit
-  --api-key KEY        OpenAI API key for authentication
-  --base-url URL       Custom API base URL (default: https://api.openai.com/v1)
-  --model MODEL        AI model to use (default: gpt-4o-mini)
-  -n, --num-commits N  Number of commits to generate (default: AI decides)
-```
-
-## 配置文件模式
+## 快速开始
 
 1. 创建配置文件`.aicmtrc`
 
@@ -65,6 +37,18 @@ touch .aicmtrc
 
 3. 进入git仓库目录内，执行`aicmt`命令，即可自动分析变更并生成提交信息。
 
+## 帮助：
+```bash
+$ aicmt -h
+usage: aicmt [-h] [-v] [-n N]
+
+<<< AICMT (AI Commit) - AI-powered Git commit assistant >>>
+
+options:
+  -h, --help           show this help message and exit
+  -v, --version        show program's version number and exit
+  -n, --num-commits N  Number of commits to generate (default: AI decides)
+```
 
 ## 开发
 
