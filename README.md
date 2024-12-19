@@ -13,10 +13,14 @@ An AI-powered Git commit assistant that not only generates commit messages, but 
 
 ## Installation
 
-Requires Python 3.10 or higher.
+Use pip to install (Python >=3.10)
 
 ```bash
 pip install aicmt
+```
+or use brew to install
+```bash
+brew install versun/tap/aicmt
 ```
 
 ## Quick Start 

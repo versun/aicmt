@@ -13,10 +13,14 @@
 
 ## 安装
 
-要求Python 3.10或更高版本。
+使用pip安装(Python >=3.10)
 
 ```bash
 pip install aicmt
+```
+或者使用brew安装
+```bash
+brew install versun/tap/aicmt
 ```
 
 ## 快速开始
