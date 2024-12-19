@@ -180,19 +180,6 @@ analysis_prompt = local prompt
     local_config.write_text(local_config_content)
     monkeypatch.chdir(work_dir)
 
-    # set command line config
-    monkeypatch.setattr(
-        "aicmt.config._load_cli_config",
-        lambda: {"api_key": "cli_key", "model": "cli model", "base_url": "https://cli.openai.com", "analysis_prompt": "cli prompt"},
-    )
-
-    result = load_config()
-
-    assert result["api_key"] == "cli_key"
-    assert result["model"] == "cli model"
-    assert result["base_url"] == "https://cli.openai.com"
-    assert result["analysis_prompt"] == "cli prompt"
-
     # remove command line config, validate local config
     monkeypatch.setattr("aicmt.config._load_cli_config", lambda: {})
     result = load_config()

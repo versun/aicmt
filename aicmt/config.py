@@ -159,13 +159,12 @@ def _load_cli_config() -> Dict[str, Any]:
 
     cli_config = {}
 
-    # Handle OpenAI settings
-    if args.api_key is not None:
-        cli_config["api_key"] = args.api_key
-    if args.base_url is not None:
-        cli_config["base_url"] = args.base_url
-    if args.model is not None:
-        cli_config["model"] = args.model
+    # if args.api_key is not None:
+    #     cli_config["api_key"] = args.api_key
+    # if args.base_url is not None:
+    #     cli_config["base_url"] = args.base_url
+    # if args.model is not None:
+    #     cli_config["model"] = args.model
     if args.num_commits is not None:
         cli_config["num_commits"] = args.num_commits
     return cli_config
@@ -211,9 +210,7 @@ def validate_config(config: Dict[str, Any]):
     if "api_key" in missing_fields:
         raise ValueError(
             "OpenAI API key not configured. To fix this:\n"
-            "1. Use --api-key command line argument\n"
-            "   Example: --api-key=your-api-key-here\n"
-            "2. Or add to .aicmtrc file:\n"
+            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
             "   [openai]\n"
             "   api_key = your-api-key-here"
         )
@@ -221,9 +218,7 @@ def validate_config(config: Dict[str, Any]):
     if "model" in missing_fields:
         raise ValueError(
             "No model specified. To fix this:\n"
-            "1. Use --model command line argument\n"
-            "   Example: --model=gpt-4o-mini\n"
-            "2. Or add to .aicmtrc file:\n"
+            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
             "   [openai]\n"
             "   model = gpt-4o-mini"
         )
@@ -231,9 +226,7 @@ def validate_config(config: Dict[str, Any]):
     if "base_url" in missing_fields:
         raise ValueError(
             "No base URL specified. To fix this:\n"
-            "1. Use --base-url command line argument\n"
-            "   Example: --base-url=https://your-base-url.com\n"
-            "2. Or add to .aicmtrc file:\n"
+            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
             "   [openai]\n"
             "   base_url = https://your-base-url.com"
         )
@@ -241,9 +234,7 @@ def validate_config(config: Dict[str, Any]):
     if "analysis_prompt" in missing_fields:
         raise ValueError(
             "No analysis prompt specified. To fix this:\n"
-            "1. Use --analysis-prompt command line argument\n"
-            "   Example: --analysis-prompt=Your analysis prompt here\n"
-            "2. Or add to .aicmtrc file:\n"
+            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
             "   [prompts]\n"
             "   analysis_prompt = Your analysis prompt here"
         )
