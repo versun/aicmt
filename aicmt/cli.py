@@ -59,7 +59,7 @@ class GitCommitAssistant:
                     self.git_ops.stage_files(group["files"])
 
                     # Create commit
-                    self.git_ops.commit_changes(group["commit_message"])
+                    self.git_ops.commit_changes(group["commit_message"] + "\n\n" + group["description"])
 
                     self.cli.display_success(f"Created commit: {group['commit_message']}")
                 except Exception as e:
