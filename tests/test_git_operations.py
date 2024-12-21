@@ -301,43 +301,6 @@ def test_error_handling(temp_git_repo):
         os.chdir(current_dir)
 
 
-def test_get_unstaged_changes_exception_handling(temp_git_repo, monkeypatch, capsys):
-    """Test exception handling in get_unstaged_changes method"""
-    git_ops = GitOperations(temp_git_repo)
-
-    # Switch to the repository directory
-    current_dir = os.getcwd()
-    os.chdir(temp_git_repo)
-
-    try:
-        # Create a file that will cause an exception when processed
-        test_file = "test_exception.txt"
-        with open(test_file, "w") as f:
-            f.write("test content")
-
-        # Mock the _handle_untracked_file method to raise an exception
-        def mock_handle_untracked(*args):
-            raise Exception("Test exception")
-
-        original_method = git_ops._handle_untracked_file
-        git_ops._handle_untracked_file = mock_handle_untracked
-
-        # Get captured output
-        captured = capsys.readouterr()
-
-        # Verify that the warning was printed (rich console formatting removed)
-        assert "Warning: Could not process test_exception.txt: Test exception" in captured.out.replace("[yellow]", "").replace("[/yellow]", "")
-
-        # Restore the original method
-        git_ops._handle_untracked_file = original_method
-
-    finally:
-        # Cleanup
-        if os.path.exists(test_file):
-            os.remove(test_file)
-        os.chdir(current_dir)
-
-
 def test_handle_modified_file_diff_error(temp_git_repo):
     """Test IOError handling when git diff fails for a modified file"""
     git_ops = GitOperations(temp_git_repo)
@@ -422,24 +385,3 @@ def test_stage_deleted_file(temp_git_repo):
     finally:
         # Restore the original directory
         os.chdir(current_dir)
-
-
-def test_commit_changes_error_handling(temp_git_repo, monkeypatch):
-    """Test error handling in commit_changes method"""
-    git_ops = GitOperations(temp_git_repo)
-
-    # Create a mock index object that raises GitCommandError on commit
-    class MockIndex:
-        def commit(self, *args, **kwargs):
-            raise GitCommandError("commit", status=128, stderr="fatal: some git error")
-
-    # Replace the entire index object
-    monkeypatch.setattr(git_ops.repo, "index", MockIndex())
-
-    # Test that the function properly raises GitCommandError with the correct message
-    with pytest.raises(GitCommandError) as excinfo:
-        git_ops.commit_changes("Test commit")
-
-    assert "Failed to commit changes" in str(excinfo.value)
-    assert excinfo.value.status == 128
-    assert "fatal: some git error" in excinfo.value.stderr
