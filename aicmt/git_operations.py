@@ -1,4 +1,4 @@
-from typing import List, Dict, NamedTuple, Optional
+from typing import List, Dict, NamedTuple, Optional, Tuple
 import git
 from git import Repo
 from rich.console import Console
@@ -41,6 +41,10 @@ class GitOperations:
 
         Returns:
             List[Change]: List of changes in the repository
+            - status can be one of:
+                "modified", "deleted", "new file", "new file (binary)", "error"
+            - diff contains the actual changes or special messages:
+                "[File deleted]", "[Binary file]"
 
         Raises:
             IOError: If there is an error reading a file
@@ -57,38 +61,19 @@ class GitOperations:
         for file_path in modified_files + untracked_files:
             try:
                 file_path_obj = Path(file_path)
+                status = ""
+                diff = ""
 
                 if file_path in modified_files:
-                    try:
-                        diff = self.git.diff(file_path)
-                        status = "modified"
-                    except git.exc.GitCommandError:
-                        status = "deleted"
-                        diff = "[File deleted]"
+                    status, diff = self._handle_modified_file(file_path, file_path_obj)
                 else:
-                    if file_path_obj.is_file():
-                        try:
-                            # check if the file is binary
-                            with open(file_path, "rb") as f:
-                                content = f.read(1024 * 1024)
-                                if b"\0" in content:
-                                    diff = "[Binary file]"
-                                    status = "new file (binary)"
-                                else:
-                                    # file is not binary
-                                    with open(file_path, "r", encoding="utf-8") as f:
-                                        diff = f.read()
-                                    status = "new file"
-                        except UnicodeDecodeError:
-                            diff = "[Binary file]"
-                            status = "new file (binary)"
-                    else:
-                        diff = "[File not found]"
-                        status = "error"
+                    status, diff = self._handle_untracked_file(file_path, file_path_obj)
 
-                # Count insertions and deletions
-                insertions = len([i_l for i_l in diff.split("\n") if i_l.startswith("+")])
-                deletions = len([d_l for d_l in diff.split("\n") if d_l.startswith("-")])
+                # Count insertions and deletions only if we have actual diff content
+                insertions = deletions = 0
+                if diff and not diff.startswith("["):
+                    insertions = len([line for line in diff.split("\n") if line.startswith("+")])
+                    deletions = len([line for line in diff.split("\n") if line.startswith("-")])
 
                 changes.append(
                     Change(
@@ -103,6 +88,53 @@ class GitOperations:
                 console.print(f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]")
 
         return changes
+
+    def _handle_modified_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
+        """Handle modified file status and diff generation
+
+        Args:
+            file_path (str): Path to the file
+            file_path_obj (Path): Path object for the file
+
+        Returns:
+            Tuple[str, str]: (status, diff)
+        """
+        try:
+            # Try to get diff first
+            diff = self.git.diff(file_path)
+            return "modified", diff
+        except git.exc.GitCommandError:
+            # If file doesn't exist, treat it as deleted
+            if not file_path_obj.exists():
+                return "deleted", "[File deleted]"
+            # If file exists but diff failed, something else is wrong
+            raise IOError(f"Failed to get diff for {file_path}")
+
+    def _handle_untracked_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
+        """Handle untracked file status and content reading
+
+        Args:
+            file_path (str): Path to the file
+            file_path_obj (Path): Path object for the file
+
+        Returns:
+            Tuple[str, str]: (status, content)
+        """
+        if not file_path_obj.is_file():
+            return "deleted", "[File deleted]"
+
+        try:
+            # Check if file is binary
+            with open(file_path, "rb") as f:
+                content = f.read(1024 * 1024)  # Read first MB to check for binary content
+                if b"\0" in content:
+                    return "new file (binary)", "[Binary file]"
+
+            # File is not binary, try to read as text
+            with open(file_path, "r", encoding="utf-8") as f:
+                return "new file", f.read()
+        except UnicodeDecodeError:
+            return "new file (binary)", "[Binary file]"
 
     def stage_files(self, files: List[str]) -> None:
         """Stage specified files
