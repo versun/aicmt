@@ -28,7 +28,7 @@ brew install versun/tap/aicmt
 
 1. Create configuration file `.aicmtrc`
 
-Reference the template file [`.aicmtrc.template`](./.aicmtrc.template)` and create `.aicmtrc` in your home directory.
+Reference the template file [`.aicmtrc.template`](./.aicmtrc.template) and create `.aicmtrc` in your home directory.
 ```bash
 cp .aicmtrc.template ~/.aicmtrc
 ```
