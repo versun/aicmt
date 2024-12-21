@@ -1,0 +1,30 @@
+name: Update Homebrew Formula
+on:
+  release:
+    types: [created]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: versun/homebrew-tap
+          token: ${{ secrets.PAT_TOKEN }}
+          
+      - name: Update Formula
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          REVISION="${{ github.sha }}"
+          
+          sed -i "s/tag:.*$/tag:      \"${TAG}\",/" aicmt.rb
+          sed -i "s/revision:.*$/revision: \"${REVISION}\"/" aicmt.rb
+          
+      - name: Commit and Push
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add aicmt.rb
+          git commit -m "Update aicmt version to ${{ github.event.release.tag_name }}"
+          git push
