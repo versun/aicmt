@@ -46,6 +46,21 @@ def test_cli_keyboard_interrupt(mock_parse_args, mock_assistant, capsys):
     captured = capsys.readouterr()
     assert "Program interrupted by user" in captured.out
 
+def test_run_keyboard_interrupt(assistant, capsys):
+    """Test that KeyboardInterrupt is handled properly in GitCommitAssistant.run"""
+    changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+    
+    with patch.multiple(
+        assistant.git_ops,
+        get_unstaged_changes=lambda: changes,
+        get_current_branch=lambda: "main"
+    ):
+        with patch.object(assistant.ai_analyzer, 'analyze_changes', side_effect=KeyboardInterrupt()):
+            with pytest.raises(SystemExit):
+                assistant.run()
+    
+    captured = capsys.readouterr()
+    assert "Operation cancelled by user" in captured.out
 
 def test_run_no_changes(assistant):
     with patch("aicmt.git_operations.GitOperations.get_unstaged_changes", return_value=[]):
@@ -115,6 +130,24 @@ def test_run_push_error(mock_confirm, assistant):
             with patch.multiple(assistant.cli, display_commit_groups=lambda x: commit_groups, confirm_push=lambda: True):
                 assistant.run()
 
+@patch("aicmt.cli.parse_args")
+@patch("aicmt.cli.GitCommitAssistant")
+def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys):
+    # Mock GitCommitAssistant to raise a runtime error
+    mock_instance = mock_assistant.return_value
+    mock_instance.run.side_effect = Exception("Simulated runtime error")
+
+    # Call cli function and expect system exit
+    with pytest.raises(SystemExit) as exc_info:
+        cli()
+
+    # Check exit code
+    assert exc_info.value.code == 1
+
+    # Check error message
+    captured = capsys.readouterr()
+    assert "Runtime Error: Simulated runtime error" in captured.out
+
 
 @patch("rich.prompt.Confirm.ask")
 def test_run_no_approved_groups(mock_confirm, assistant):
@@ -127,4 +160,85 @@ def test_run_no_approved_groups(mock_confirm, assistant):
     with patch.multiple(assistant.git_ops, get_unstaged_changes=lambda: changes, get_current_branch=lambda: "main"):
         with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
             with patch.multiple(assistant.cli, display_commit_groups=lambda x: []):
+                assistant.run()
+
+def test_commit_creation_failure(assistant, capsys):
+    changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
+
+    with patch.multiple(
+        assistant.git_ops,
+        get_unstaged_changes=lambda: changes,
+        get_current_branch=lambda: "main",
+        stage_files=lambda x: None,
+        commit_changes=lambda x: exec('raise Exception("Failed to create commit")')
+    ):
+        with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
+            with patch.multiple(assistant.cli, display_commit_groups=lambda x: commit_groups):
+                with pytest.raises(SystemExit):
+                    assistant.run()
+                
+                captured = capsys.readouterr()
+                assert "Failed to create commit" in captured.out
+
+
+def test_push_confirmation_declined(assistant):
+    changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
+
+    with patch.multiple(
+        assistant.git_ops,
+        get_unstaged_changes=lambda: changes,
+        get_current_branch=lambda: "main",
+        stage_files=lambda x: None,
+        commit_changes=lambda x: None
+    ):
+        with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
+            with patch.multiple(
+                assistant.cli,
+                display_commit_groups=lambda x: commit_groups,
+                confirm_push=lambda: False
+            ):
+                assistant.run()
+
+
+def test_push_changes_failure(assistant):
+    changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
+
+    with patch.multiple(
+        assistant.git_ops,
+        get_unstaged_changes=lambda: changes,
+        get_current_branch=lambda: "main",
+        stage_files=lambda x: None,
+        commit_changes=lambda x: None,
+        push_changes=lambda: exec('raise Exception("Failed to push commits")')
+    ):
+        with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
+            with patch.multiple(
+                assistant.cli,
+                display_commit_groups=lambda x: commit_groups,
+                confirm_push=lambda: True
+            ):
+                assistant.run()
+
+def test_push_changes_network_error(assistant):
+    """Test push changes fails due to network error"""
+    changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
+
+    with patch.multiple(
+        assistant.git_ops,
+        get_unstaged_changes=lambda: changes,
+        get_current_branch=lambda: "main",
+        stage_files=lambda x: None,
+        commit_changes=lambda x: None,
+        push_changes=lambda: exec('raise ConnectionError("Network connection failed")')
+    ):
+        with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
+            with patch.multiple(
+                assistant.cli,
+                display_commit_groups=lambda x: commit_groups,
+                confirm_push=lambda: True
+            ):
                 assistant.run()
