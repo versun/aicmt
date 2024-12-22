@@ -10,6 +10,7 @@ console = Console()
 # Constants
 WELCOME_MESSAGE = "AICMT (AI Commit)\nAnalyze and organize your changes into meaningful commits"
 
+
 class CLIInterface:
     def __init__(self):
         self.console = Console()
@@ -22,6 +23,7 @@ class CLIInterface:
                 border_style="blue",
             )
         )
+
     def display_info(self, message: str):
         """Display information message"""
         console.print(f"[bold blue]{message}[/bold blue]")
@@ -31,7 +33,7 @@ class CLIInterface:
         if not changes:
             self.display_no_changes()
             self.exit_program()
-            
+
         console.print("\n[cyan]━━━ Changes Details ━━━[/cyan]")
         # Create a simple table without title
         table = Table(
