@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict, NamedTuple, Optional, Tuple
 import git
 from git import Repo
@@ -31,7 +32,6 @@ class GitOperations:
         try:
             self.repo = Repo(repo_path)
             self.git = self.repo.git
-            self.repo_path = str(Path(repo_path).resolve())
         except git.InvalidGitRepositoryError:
             raise git.InvalidGitRepositoryError(f"'{repo_path}' is not a valid Git repository")
         except git.NoSuchPathError:
@@ -111,8 +111,8 @@ class GitOperations:
         for diff in diff_index:
             status = "error"
             content = ""
-            insertions = diff.insertions if hasattr(diff, 'insertions') else 0
-            deletions = diff.deletions if hasattr(diff, 'deletions') else 0
+            insertions = diff.insertions if hasattr(diff, "insertions") else 0
+            deletions = diff.deletions if hasattr(diff, "deletions") else 0
 
             try:
                 if diff.deleted_file:
@@ -127,7 +127,7 @@ class GitOperations:
                         status = "new file"
                         file_path = os.path.join(self.repo.working_dir, diff.b_path)
                         try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
+                            with open(file_path, "r", encoding="utf-8") as f:
                                 content = f.read()
                             insertions = len(content.splitlines())
                             deletions = 0
@@ -136,12 +136,12 @@ class GitOperations:
                 else:
                     status = "modified"
                     try:
-                        content = self.repo.git.diff('--cached', diff.a_path)
+                        content = self.repo.git.diff("--cached", diff.a_path)
                         # Get detailed stats for modified files
-                        stats = self.repo.git.diff('--cached', '--numstat', diff.a_path).split()
+                        stats = self.repo.git.diff("--cached", "--numstat", diff.a_path).split()
                         if len(stats) >= 2:
-                            insertions = int(stats[0]) if stats[0] != '-' else 0
-                            deletions = int(stats[1]) if stats[1] != '-' else 0
+                            insertions = int(stats[0]) if stats[0] != "-" else 0
+                            deletions = int(stats[1]) if stats[1] != "-" else 0
                     except git.GitCommandError as e:
                         content = f"[Error getting diff: {str(e)}]"
 
@@ -149,13 +149,7 @@ class GitOperations:
                 status = "error"
                 content = f"[Unexpected error: {str(e)}]"
 
-            changes.append(Change(
-                file=diff.b_path or diff.a_path,
-                status=status,
-                diff=content,
-                insertions=insertions,
-                deletions=deletions
-            ))
+            changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
 
         return changes
 
