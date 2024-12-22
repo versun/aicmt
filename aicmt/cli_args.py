@@ -1,11 +1,12 @@
 import argparse
 from .__version__ import VERSION
+from .cli_interface import WELCOME_MESSAGE
 
 
 def parse_args(args=None) -> argparse.Namespace:
     """Parse command line arguments for configuration."""
     parser = argparse.ArgumentParser(
-        description="<<< AICMT (AI Commit) - AI-powered Git commit assistant >>>",
+        description="=" * 58 + "\n" + WELCOME_MESSAGE + "\n" + "=" * 58,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 

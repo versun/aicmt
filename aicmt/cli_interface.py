@@ -7,6 +7,8 @@ import sys
 
 console = Console()
 
+# Constants
+WELCOME_MESSAGE = "AICMT (AI Commit)\nAnalyze and organize your changes into meaningful commits"
 
 class CLIInterface:
     def __init__(self):
@@ -16,17 +18,21 @@ class CLIInterface:
         """Display welcome message"""
         console.print(
             Panel.fit(
-                "[bold blue]AICMT (AI Commit)[/bold blue]\n" "Analyze and organize your changes into meaningful commits",
+                "[bold blue]" + WELCOME_MESSAGE + "[/bold blue]",
                 border_style="blue",
             )
         )
+    def display_info(self, message: str):
+        """Display information message"""
+        console.print(f"[bold blue]{message}[/bold blue]")
 
     def display_changes(self, changes: list):
         """Display current unstaged changes"""
         if not changes:
-            console.print("[yellow]No unstaged changes found.[/yellow]")
-            return
-
+            self.display_no_changes()
+            self.exit_program()
+            
+        console.print("\n[cyan]━━━ Changes Details ━━━[/cyan]")
         # Create a simple table without title
         table = Table(
             show_header=True,
@@ -99,7 +105,35 @@ class CLIInterface:
 
     def display_success(self, message: str):
         """Display success message"""
-        console.print(f"[bold green]Success:[/bold green] {message}")
+        console.print(f"[bold green]✓[/bold green] {message}")
+
+    def display_repo_info(self, working_dir: str, branch: str):
+        """Display repository information"""
+        console.print("\n[cyan]━━━ Git Repository Info ━━━[/cyan]")
+        console.print("Repository: ", working_dir)
+        console.print("Branch: ", branch)
+
+    def display_commit_info(self, commit_hash: str, commit_message: str):
+        """Display commit information"""
+        console.print(f"Analyzed commit: {commit_hash[:8]} - {commit_message}")
+
+    def display_no_changes(self):
+        """Display no changes message"""
+        console.print("❌ No changes found")
+
+    def display_ai_analysis_start(self, base_url: str, model: str):
+        """Display AI analysis phase information"""
+        console.print("\n[cyan]━━━ AI Analysis Phase ━━━[/cyan]")
+        console.print("Base url: ", base_url)
+        console.print("Model: ", model)
+        console.print("Analyzing changes...")
+
+    def display_groups_approval_status(self, approved_count: int, total_count: int):
+        """Display groups approval status"""
+        if approved_count == 0:
+            console.print("No commit groups were approved by user")
+        else:
+            console.print(f"{approved_count} of {total_count} groups approved")
 
     def exit_program(self, message: str = ""):
         """Exit the program with an optional message"""

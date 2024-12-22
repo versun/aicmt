@@ -18,39 +18,31 @@ class GitCommitAssistant:
     def run(self):
         """Main execution flow"""
         try:
-            console.print("[cyan]━━━ Starting AICMT execution ━━━[/cyan]")
             self.cli.display_welcome()
+            # Display repository info
+            self.cli.display_repo_info(self.git_ops.repo.working_dir, self.git_ops.get_current_branch())
 
-            # Get unstaged changes
-            console.print("\n[cyan]━━━ Git Repository Analysis ━━━[/cyan]")
-            console.print("Repository: ", self.git_ops.repo.working_dir)
-            console.print("Branch: ", self.git_ops.get_current_branch())
-
-            changes = self.git_ops.get_unstaged_changes()
-            if not changes:
-                console.print("❌ No unstaged changes found")
-                self.cli.exit_program("No changes to commit.")
+            # Get changes
+            changes = []
+            staged_changes = self.git_ops.get_staged_changes()
+            if staged_changes:
+                changes = staged_changes
+                self.cli.display_info("Found staged changes, analyzing only those changes.")
+            else:
+                changes = self.git_ops.get_unstaged_changes()
 
             # Display current changes with detailed info
-            console.print(f"Found {len(changes)} unstaged changes")
-            console.print("\n[cyan]━━━ Changes Details ━━━[/cyan]")
-
             self.cli.display_changes(changes)
 
             # Analyze changes with AI
-            console.print("\n[cyan]━━━ AI Analysis Phase ━━━[/cyan]")
-            console.print("Base url: ", self.ai_analyzer.base_url)
-            console.print("Model: ", self.ai_analyzer.model)
-            console.print("Analyzing changes...")
+            self.cli.display_ai_analysis_start(
+                self.ai_analyzer.base_url,
+                self.ai_analyzer.model
+            )
 
             commit_groups = self.ai_analyzer.analyze_changes(changes)
             approved_groups = self.cli.display_commit_groups(commit_groups)
-
-            if not approved_groups:
-                console.print("No commit groups were approved by user")
-                # self.cli.exit_program("No commit groups were approved.")
-            else:
-                console.print(f"{len(approved_groups)} of {len(commit_groups)} groups approved")
+            self.cli.display_groups_approval_status(len(approved_groups), len(commit_groups))
 
             # Create commits for approved groups
             for group in approved_groups:
@@ -85,10 +77,6 @@ def cli():
     try:
         # First parse command line arguments
         parse_args()
-
-        # If help info requested, parse_args has handled it
-        if "--help" in sys.argv or "-h" in sys.argv:
-            return
 
         # Create and run assistant
         try:
