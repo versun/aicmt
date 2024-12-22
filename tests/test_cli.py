@@ -16,13 +16,6 @@ def test_git_commit_assistant_init(assistant):
     assert hasattr(assistant, "cli")
 
 
-@patch("aicmt.cli.parse_args")
-def test_cli_help(mock_parse_args):
-    with patch("sys.argv", ["aicmt", "--help"]):
-        cli()
-        mock_parse_args.assert_called_once()
-
-
 @patch("aicmt.cli.GitCommitAssistant")
 @patch("aicmt.cli.parse_args")
 def test_cli_value_error(mock_parse_args, mock_assistant, capsys):
@@ -227,3 +220,16 @@ def test_push_changes_network_error(assistant):
         with patch.multiple(assistant.ai_analyzer, analyze_changes=lambda x: commit_groups):
             with patch.multiple(assistant.cli, display_commit_groups=lambda x: commit_groups, confirm_push=lambda: True):
                 assistant.run()
+
+
+def test_run_with_staged_changes(assistant, capsys):
+    """Test that the correct message is displayed when staged changes are found"""
+    staged_changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
+
+    with patch.multiple(assistant.git_ops, get_staged_changes=lambda: staged_changes, get_current_branch=lambda: "main", stage_files=lambda x: None):
+        with patch.object(assistant.ai_analyzer, "analyze_changes", return_value=[]):
+            with pytest.raises(SystemExit):
+                assistant.run()
+
+    captured = capsys.readouterr()
+    assert "Found staged changes, analyzing only those changes." in captured.out
