@@ -65,7 +65,7 @@ git clone https://github.com/versun/aicmt.git
 2. Install dependencies:
 ```bash
 cd aicmt
-pip install ".[dev]"
+pip install -e ".[dev]"
 ```
 
 ## Having Issues?
