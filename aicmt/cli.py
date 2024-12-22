@@ -35,10 +35,7 @@ class GitCommitAssistant:
             self.cli.display_changes(changes)
 
             # Analyze changes with AI
-            self.cli.display_ai_analysis_start(
-                self.ai_analyzer.base_url,
-                self.ai_analyzer.model
-            )
+            self.cli.display_ai_analysis_start(self.ai_analyzer.base_url, self.ai_analyzer.model)
 
             commit_groups = self.ai_analyzer.analyze_changes(changes)
             approved_groups = self.cli.display_commit_groups(commit_groups)
