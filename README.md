@@ -75,6 +75,7 @@ If the issue persists, please submit an issue, and I will consult AI to resolve 
 ## Contributing
 
 Pull requests are welcome!
+Please submit an issue before submitting a pull request, to avoid duplicate submissions.
 
 ## A Big Thank You to My Sponsors
 I am deeply grateful to my amazing supporters and sponsors who have made my open source journey possible.   

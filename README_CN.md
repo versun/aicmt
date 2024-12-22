@@ -73,6 +73,7 @@ pip install ".[dev]"
 ## 贡献
 
 欢迎提交拉取请求！
+请在提交PR前先提交issue，避免重复提交。
 
 ## A Big Thank You to My Sponsors
 I am deeply grateful to my amazing supporters and sponsors who have made my open source journey possible.   
