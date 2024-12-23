@@ -314,3 +314,64 @@ class GitOperations:
             return commits
         except git.GitCommandError as e:
             raise git.GitCommandError(f"Failed to get commit history: {str(e)}", e.status, e.stderr)
+
+    def get_commit_changes(self, commit_hash: str) -> List[Change]:
+        """Get changes from a specific commit
+
+        Args:
+            commit_hash: Hash of the commit to analyze
+
+        Returns:
+            List[Change]: List of changes in the commit
+
+        Raises:
+            git.GitCommandError: If there is an error getting the commit changes
+        """
+        try:
+            commit = self.repo.commit(commit_hash)
+            parent = commit.parents[0] if commit.parents else self.repo.tree("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+            
+            changes = []
+            diff_index = parent.diff(commit)
+
+            for diff in diff_index:
+                status = "error"
+                content = ""
+                insertions = diff.insertions if hasattr(diff, "insertions") else 0
+                deletions = diff.deletions if hasattr(diff, "deletions") else 0
+
+                try:
+                    if diff.deleted_file:
+                        status = "deleted"
+                        content = "[File deleted]"
+                        insertions, deletions = 0, diff.a_blob.size if diff.a_blob else 0
+                    elif diff.new_file:
+                        if diff.b_blob:
+                            try:
+                                content = diff.b_blob.data_stream.read().decode('utf-8')
+                                status = "new file"
+                                insertions = len(content.splitlines())
+                                deletions = 0
+                            except UnicodeDecodeError:
+                                status = "new file (binary)"
+                                content = "[Binary file]"
+                        else:
+                            status = "new file"
+                            content = "[Empty file]"
+                    else:
+                        status = "modified"
+                        content = self.repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", diff.b_path)
+                        stats = self.repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--numstat", diff.b_path).split()
+                        if len(stats) >= 2:
+                            insertions = int(stats[0]) if stats[0] != "-" else 0
+                            deletions = int(stats[1]) if stats[1] != "-" else 0
+
+                except Exception as e:
+                    status = "error"
+                    content = f"[Unexpected error: {str(e)}]"
+
+                changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
+
+            return changes
+        except git.GitCommandError as e:
+            raise git.GitCommandError(f"Failed to get commit changes: {str(e)}", e.status, e.stderr)
