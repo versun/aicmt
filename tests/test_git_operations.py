@@ -391,11 +391,11 @@ def test_stage_deleted_file(temp_git_repo):
 def test_get_commit_changes(temp_git_repo):
     """Test getting changes from a specific commit"""
     git_ops = GitOperations(temp_git_repo)
-    
+
     # Switch to the repository directory
     current_dir = os.getcwd()
     os.chdir(temp_git_repo)
-    
+
     try:
         # Create and commit initial files
         with open("test1.txt", "w") as f:
@@ -403,71 +403,70 @@ def test_get_commit_changes(temp_git_repo):
         with open("test2.txt", "w") as f:
             f.write("file to be deleted")
         with open("test3.bin", "wb") as f:
-            f.write(b'\x00\x01\x02\x03')  # Binary content
+            f.write(b"\x00\x01\x02\x03")  # Binary content
         with open("test4.txt", "w") as f:
             pass  # Empty file
-        
+
         git_ops.repo.index.add(["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
-        initial_commit = git_ops.repo.index.commit("Initial commit")
-        
+
         # Make various changes
         # 1. Modify test1.txt
         with open("test1.txt", "w") as f:
             f.write("modified content")
-        
+
         # 2. Delete test2.txt
         os.remove("test2.txt")
-        
+
         # 3. Modify binary file
         with open("test3.bin", "wb") as f:
-            f.write(b'\x03\x02\x01\x00')
-            
+            f.write(b"\x03\x02\x01\x00")
+
         # 4. Create new empty file
         with open("test5.txt", "w") as f:
             pass
-            
+
         git_ops.repo.index.add(["test1.txt", "test3.bin", "test5.txt"])
         git_ops.repo.index.remove(["test2.txt"])
         second_commit = git_ops.repo.index.commit("Various changes")
-        
+
         # Get changes from the second commit
         changes = git_ops.get_commit_changes(second_commit.hexsha)
-        
+
         # Verify number of changes
         assert len(changes) == 4
-        
+
         # Find changes by filename
         test1_change = next(change for change in changes if change.file == "test1.txt")
         test2_change = next(change for change in changes if change.file == "test2.txt")
         test3_change = next(change for change in changes if change.file == "test3.bin")
         test5_change = next(change for change in changes if change.file == "test5.txt")
-        
+
         # Test modified text file
         assert test1_change.status == "modified"
         assert "modified content" in test1_change.diff
         assert test1_change.insertions > 0
         assert test1_change.deletions > 0
-        
+
         # Test deleted file
         assert test2_change.status == "deleted"
         assert "[File deleted]" in test2_change.diff
         assert test2_change.insertions == 0
         assert test2_change.deletions > 0
-        
+
         # Test binary file
         assert test3_change.status == "modified"
         assert test3_change.insertions >= 0
         assert test3_change.deletions >= 0
-        
+
         # Test new empty file
         assert test5_change.status == "new file"
         assert test5_change.insertions == 0
         assert test5_change.deletions == 0
-        
+
         # Test invalid commit hash
         with pytest.raises(BadName):
             git_ops.get_commit_changes("invalid_hash")
-            
+
     finally:
         # Restore the original directory
         os.chdir(current_dir)

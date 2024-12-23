@@ -330,7 +330,7 @@ class GitOperations:
         try:
             commit = self.repo.commit(commit_hash)
             parent = commit.parents[0] if commit.parents else self.repo.tree("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
-            
+
             changes = []
             diff_index = parent.diff(commit)
 
@@ -348,7 +348,7 @@ class GitOperations:
                     elif diff.new_file:
                         if diff.b_blob:
                             try:
-                                content = diff.b_blob.data_stream.read().decode('utf-8')
+                                content = diff.b_blob.data_stream.read().decode("utf-8")
                                 status = "new file"
                                 insertions = len(content.splitlines())
                                 deletions = 0

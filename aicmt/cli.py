@@ -29,9 +29,7 @@ class AiCommit:
         for group in approved_groups:
             try:
                 self.git_ops.stage_files(group["files"])
-                self.git_ops.commit_changes(
-                    f"{group['commit_message']}\n\n{group['description']}"
-                )
+                self.git_ops.commit_changes(f"{group['commit_message']}\n\n{group['description']}")
                 self.cli.display_success(f"Created commit: {group['commit_message']}")
             except Exception as e:
                 self.cli.display_error(f"Failed to create commit: {str(e)}")

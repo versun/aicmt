@@ -15,6 +15,7 @@ def test_git_commit_assistant_init(assistant):
     assert hasattr(assistant, "ai_analyzer")
     assert hasattr(assistant, "cli")
 
+
 def test_run_keyboard_interrupt(assistant, capsys):
     """Test that KeyboardInterrupt is handled properly in AiCommit.run"""
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
