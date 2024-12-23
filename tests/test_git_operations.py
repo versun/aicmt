@@ -408,6 +408,7 @@ def test_get_commit_changes(temp_git_repo):
             pass  # Empty file
 
         git_ops.repo.index.add(["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
+        git_ops.repo.index.commit("Initial commit")
 
         # Make various changes
         # 1. Modify test1.txt
