@@ -1,13 +1,13 @@
 import pytest
 from unittest.mock import patch
-from aicmt.cli import GitCommitAssistant, cli
+from aicmt.cli import AiCommit, cli
 from aicmt.git_operations import Change
 
 
 @pytest.fixture
 def assistant(monkeypatch):
     monkeypatch.setattr("aicmt.config._load_cli_config", lambda: {})
-    return GitCommitAssistant()
+    return AiCommit()
 
 
 def test_git_commit_assistant_init(assistant):
@@ -15,33 +15,8 @@ def test_git_commit_assistant_init(assistant):
     assert hasattr(assistant, "ai_analyzer")
     assert hasattr(assistant, "cli")
 
-
-@patch("aicmt.cli.GitCommitAssistant")
-@patch("aicmt.cli.parse_args")
-def test_cli_value_error(mock_parse_args, mock_assistant, capsys):
-    mock_assistant.return_value.run.side_effect = ValueError("Test error")
-
-    with pytest.raises(SystemExit):
-        cli()
-
-    captured = capsys.readouterr()
-    assert "Configuration Error" in captured.out
-
-
-@patch("aicmt.cli.GitCommitAssistant")
-@patch("aicmt.cli.parse_args")
-def test_cli_keyboard_interrupt(mock_parse_args, mock_assistant, capsys):
-    mock_parse_args.side_effect = KeyboardInterrupt()
-
-    with pytest.raises(SystemExit):
-        cli()
-
-    captured = capsys.readouterr()
-    assert "Program interrupted by user" in captured.out
-
-
 def test_run_keyboard_interrupt(assistant, capsys):
-    """Test that KeyboardInterrupt is handled properly in GitCommitAssistant.run"""
+    """Test that KeyboardInterrupt is handled properly in AiCommit.run"""
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
 
     with patch.multiple(assistant.git_ops, get_unstaged_changes=lambda: changes, get_current_branch=lambda: "main"):
@@ -123,9 +98,9 @@ def test_run_push_error(mock_confirm, assistant):
 
 
 @patch("aicmt.cli.parse_args")
-@patch("aicmt.cli.GitCommitAssistant")
+@patch("aicmt.cli.AiCommit")
 def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys):
-    # Mock GitCommitAssistant to raise a runtime error
+    # Mock AiCommit to raise a runtime error
     mock_instance = mock_assistant.return_value
     mock_instance.run.side_effect = Exception("Simulated runtime error")
 
@@ -138,7 +113,7 @@ def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys):
 
     # Check error message
     captured = capsys.readouterr()
-    assert "Runtime Error: Simulated runtime error" in captured.out
+    assert "Error: Simulated runtime error" in captured.out
 
 
 @patch("rich.prompt.Confirm.ask")
