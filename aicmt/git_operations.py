@@ -19,7 +19,6 @@ class Change(NamedTuple):
 
 
 class GitOperations:
-
     def __init__(self, repo_path: str = "."):
         """Initialize GitOperations with a repository path
 
@@ -34,8 +33,7 @@ class GitOperations:
             self.repo = Repo(repo_path)
             self.git = self.repo.git
         except git.InvalidGitRepositoryError:
-            raise git.InvalidGitRepositoryError(
-                f"'{repo_path}' is not a valid Git repository")
+            raise git.InvalidGitRepositoryError(f"'{repo_path}' is not a valid Git repository")
         except git.NoSuchPathError:
             raise git.NoSuchPathError(f"Path '{repo_path}' does not exist")
 
@@ -68,11 +66,9 @@ class GitOperations:
                 diff = ""
 
                 if file_path in modified_files:
-                    status, diff = self._handle_modified_file(
-                        file_path, file_path_obj)
+                    status, diff = self._handle_modified_file(file_path, file_path_obj)
                 else:
-                    status, diff = self._handle_untracked_file(
-                        file_path, file_path_obj)
+                    status, diff = self._handle_untracked_file(file_path, file_path_obj)
 
                 if diff and not diff.startswith("["):
                     insertions, deletions = self._calculate_diff_stats(diff)
@@ -86,11 +82,10 @@ class GitOperations:
                         diff=diff,
                         insertions=insertions,
                         deletions=deletions,
-                    ))
-            except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]"
+                    )
                 )
+            except Exception as e:
+                console.print(f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]")
 
         return changes
 
@@ -119,18 +114,12 @@ class GitOperations:
             deletions = 0
 
             try:
-                status, content, insertions, deletions = self._process_file_diff(
-                    diff)
+                status, content, insertions, deletions = self._process_file_diff(diff)
             except Exception as e:
                 status = "error"
                 content = f"[Unexpected error: {str(e)}]"
 
-            changes.append(
-                Change(file=diff.b_path or diff.a_path,
-                       status=status,
-                       diff=content,
-                       insertions=insertions,
-                       deletions=deletions))
+            changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
 
         return changes
 
@@ -156,8 +145,7 @@ class GitOperations:
         if diff.deleted_file:
             status = "deleted"
             content = "[File deleted]"
-            insertions, deletions = 0, len(
-                diff.a_blob.data_stream.read().decode('utf-8').splitlines())
+            insertions, deletions = 0, len(diff.a_blob.data_stream.read().decode("utf-8").splitlines())
         elif diff.new_file:
             if diff.b_blob and diff.b_blob.mime_type != "text/plain":
                 status = "new file (binary)"
@@ -179,11 +167,11 @@ class GitOperations:
                 staged_diff = self.repo.git.diff("--cached", diff.a_path)
                 if staged_diff:
                     content = staged_diff
-                    #stats = self.repo.git.diff("--cached", "--numstat",diff.a_path).split()
+                    # stats = self.repo.git.diff("--cached", "--numstat",diff.a_path).split()
                 else:
                     # If the file is not modified in the staging area, compare with the parent commit
                     content = self.repo.git.diff("HEAD^", "HEAD", diff.a_path)
-                    #stats = self.repo.git.diff("HEAD^", "HEAD", "--numstat",diff.a_path).split()
+                    # stats = self.repo.git.diff("HEAD^", "HEAD", "--numstat",diff.a_path).split()
 
                 insertions, deletions = self._calculate_diff_stats(content)
             except git.GitCommandError as e:
@@ -194,15 +182,14 @@ class GitOperations:
     def _calculate_diff_stats(self, diff_content: str) -> Tuple[int, int]:
         """Caculates the number of inserted and deleted lines in a diff content"""
         insertions = deletions = 0
-        for line in diff_content.split('\n'):
-            if line.startswith('+') and not line.startswith('+++'):
+        for line in diff_content.split("\n"):
+            if line.startswith("+") and not line.startswith("+++"):
                 insertions += 1
-            elif line.startswith('-') and not line.startswith('---'):
+            elif line.startswith("-") and not line.startswith("---"):
                 deletions += 1
         return insertions, deletions
 
-    def _handle_modified_file(self, file_path: str,
-                              file_path_obj: Path) -> Tuple[str, str]:
+    def _handle_modified_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
         """Handle modified file status and diff generation
 
         Args:
@@ -223,8 +210,7 @@ class GitOperations:
             # If file exists but diff failed, something else is wrong
             raise IOError(f"Failed to get diff for {file_path}")
 
-    def _handle_untracked_file(self, file_path: str,
-                               file_path_obj: Path) -> Tuple[str, str]:
+    def _handle_untracked_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
         """Handle untracked file status and content reading
 
         Args:
@@ -240,8 +226,7 @@ class GitOperations:
         try:
             # Check if file is binary
             with open(file_path, "rb") as f:
-                content = f.read(
-                    1024 * 1024)  # Read first MB to check for binary content
+                content = f.read(1024 * 1024)  # Read first MB to check for binary content
                 if b"\0" in content:
                     return "new file (binary)", "[Binary file]"
 
@@ -266,8 +251,7 @@ class GitOperations:
 
             for file in files:
                 # Find status for this file
-                file_status = next(
-                    (s for s in status if s.split()[-1] == file), None)
+                file_status = next((s for s in status if s.split()[-1] == file), None)
                 if file_status and file_status.startswith(" D"):
                     # File is deleted, use remove
                     self.repo.index.remove([file])
@@ -275,8 +259,7 @@ class GitOperations:
                     # File is modified or new, use add
                     self.repo.index.add([file])
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to stage files: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to stage files: {str(e)}", e.status, e.stderr)
 
     def commit_changes(self, message: str) -> None:
         """Create a commit with the staged changes
@@ -290,12 +273,9 @@ class GitOperations:
         try:
             self.repo.index.commit(message)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to commit changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to commit changes: {str(e)}", e.status, e.stderr)
 
-    def push_changes(self,
-                     remote: str = "origin",
-                     branch: Optional[str] = None) -> None:
+    def push_changes(self, remote: str = "origin", branch: Optional[str] = None) -> None:
         """Push commits to remote repository
 
         Args:
@@ -311,8 +291,7 @@ class GitOperations:
             origin = self.repo.remote(remote)
             origin.push(branch)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to push changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to push changes: {str(e)}", e.status, e.stderr)
 
     def get_current_branch(self) -> str:
         """Get the name of the current branch
@@ -326,8 +305,7 @@ class GitOperations:
         try:
             return self.repo.active_branch.name
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get current branch: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get current branch: {str(e)}", e.status, e.stderr)
 
     def checkout_branch(self, branch_name: str, create: bool = False) -> None:
         """Checkout a branch
@@ -344,8 +322,7 @@ class GitOperations:
                 self.repo.create_head(branch_name)
             self.repo.git.checkout(branch_name)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}", e.status, e.stderr)
 
     def get_commit_history(self, max_count: int = 10) -> List[Dict]:
         """Get commit history
@@ -362,16 +339,17 @@ class GitOperations:
         try:
             commits = []
             for commit in self.repo.iter_commits(max_count=max_count):
-                commits.append({
-                    "hash": commit.hexsha,
-                    "message": commit.message.strip(),
-                    "author": str(commit.author),
-                    "date": commit.committed_datetime.isoformat(),
-                })
+                commits.append(
+                    {
+                        "hash": commit.hexsha,
+                        "message": commit.message.strip(),
+                        "author": str(commit.author),
+                        "date": commit.committed_datetime.isoformat(),
+                    }
+                )
             return commits
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get commit history: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get commit history: {str(e)}", e.status, e.stderr)
 
     def get_commit_changes(self, commit_hash: str) -> List[Change]:
         """Get changes from a specific commit
@@ -387,8 +365,7 @@ class GitOperations:
         """
         try:
             commit = self.repo.commit(commit_hash)
-            parent = commit.parents[0] if commit.parents else self.repo.tree(
-                "4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+            parent = commit.parents[0] if commit.parents else self.repo.tree("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
 
             changes = []
             diff_index = parent.diff(commit)
@@ -399,20 +376,13 @@ class GitOperations:
                 insertions = 0
                 deletions = 0
                 try:
-                    status, content, insertions, deletions = self._process_file_diff(
-                        diff)
+                    status, content, insertions, deletions = self._process_file_diff(diff)
                 except Exception as e:
                     status = "error"
                     content = f"[Unexpected error: {str(e)}]"
 
-                changes.append(
-                    Change(file=diff.b_path or diff.a_path,
-                           status=status,
-                           diff=content,
-                           insertions=insertions,
-                           deletions=deletions))
+                changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
 
             return changes
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get commit changes: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get commit changes: {str(e)}", e.status, e.stderr)
