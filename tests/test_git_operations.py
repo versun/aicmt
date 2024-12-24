@@ -479,3 +479,72 @@ def test_get_commit_changes(temp_git_repo):
     finally:
         # Restore the original directory
         os.chdir(current_dir)
+
+
+def test_get_staged_changes(temp_git_repo):
+    """Test getting staged changes"""
+    git_ops = GitOperations(temp_git_repo)
+    current_dir = os.getcwd()
+    os.chdir(temp_git_repo)
+
+    try:
+        # Test new text file
+        with open("new_file.txt", "w") as f:
+            f.write("new content")
+        git_ops.stage_files(["new_file.txt"])
+
+        # Test new binary file
+        with open("new_binary.bin", "wb") as f:
+            f.write(bytes([0x00, 0x01, 0x02, 0x03]))
+        git_ops.stage_files(["new_binary.bin"])
+
+        # Test modified file
+        with open("modify.txt", "w") as f:
+            f.write("initial")
+        git_ops.stage_files(["modify.txt"])
+        git_ops.commit_changes("Add file to modify")
+        with open("modify.txt", "w") as f:
+            f.write("modified")
+        git_ops.stage_files(["modify.txt"])
+
+        # Test deleted file
+        with open("delete.txt", "w") as f:
+            f.write("to be deleted")
+        git_ops.stage_files(["delete.txt"])
+        git_ops.commit_changes("Add file to delete")
+        os.remove("delete.txt")
+        git_ops.stage_files(["delete.txt"])
+
+        # Get and verify staged changes
+        changes = git_ops.get_staged_changes()
+        assert len(changes) == 4
+
+        # Verify new text file
+        new_file = next(c for c in changes if c.file == "new_file.txt")
+        assert new_file.status == "new file"
+        assert "new content" in new_file.diff
+        assert new_file.insertions == 1
+        assert new_file.deletions == 0
+
+        # Verify new binary file
+        binary_file = next(c for c in changes if c.file == "new_binary.bin")
+        assert binary_file.status == "new file (binary)"
+        assert binary_file.diff == "[Binary file]"
+
+        # Verify modified file
+        modified_file = next(c for c in changes if c.file == "modify.txt")
+        assert modified_file.status == "modified"
+        assert "-initial" in modified_file.diff
+        assert "+modified" in modified_file.diff
+        assert modified_file.insertions == 1
+        assert modified_file.deletions == 1
+
+        # Verify deleted file
+        deleted_file = next(c for c in changes if c.file == "delete.txt")
+        assert deleted_file.status == "deleted"
+        assert deleted_file.diff == "[File deleted]"
+        assert deleted_file.insertions == 0
+        assert deleted_file.deletions > 0
+
+    finally:
+        os.chdir(current_dir)
