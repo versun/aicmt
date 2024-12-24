@@ -115,8 +115,6 @@ class GitOperations:
         for diff in diff_index:
             status = "error"
             content = ""
-            # insertions = diff.insertions if hasattr(diff, "insertions") else 0
-            # deletions = diff.deletions if hasattr(diff, "deletions") else 0
             insertions = 0
             deletions = 0
 
@@ -252,18 +250,6 @@ class GitOperations:
                 return "new file", f.read()
         except UnicodeDecodeError:
             return "new file (binary)", "[Binary file]"
-
-    def _handle_file_content(self, file_path: Path) -> Tuple[str, str]:
-        if not file_path.exists():
-            return "deleted", "[文件已删除]"
-
-        try:
-            content = file_path.read_bytes()
-            if b"\0" in content[:1024]:
-                return "new file (binary)", "[二进制文件]"
-            return "new file", file_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            return "new file (binary)", "[二进制文件]"
 
     def stage_files(self, files: List[str]) -> None:
         """Stage specified files
@@ -410,9 +396,6 @@ class GitOperations:
             for diff in diff_index:
                 status = "error"
                 content = ""
-                # insertions = diff.insertions if hasattr(diff,
-                #                                         "insertions") else 0
-                # deletions = diff.deletions if hasattr(diff, "deletions") else 0
                 insertions = 0
                 deletions = 0
                 try:
