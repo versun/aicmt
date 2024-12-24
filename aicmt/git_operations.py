@@ -245,6 +245,9 @@ class GitOperations:
         Raises:
             git.GitCommandError: If there is an error staging the files
         """
+        if not files:
+            raise ValueError("No files to stage!")
+            
         try:
             # Get current status of files
             status = self.repo.git.status("--porcelain").splitlines()

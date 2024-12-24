@@ -130,6 +130,11 @@ def test_run_no_approved_groups(mock_confirm, assistant):
             with patch.multiple(assistant.cli, display_commit_groups=lambda x: []):
                 assistant.run()
 
+def test_create_new_commits(assistant, capsys):
+    commit_groups = [{"files": [], "commit_message": "test commit", "description": "test description"}]
+    assistant._create_new_commits(commit_groups)
+    captured = capsys.readouterr()
+    assert "No files to stage!" in captured.out
 
 def test_commit_creation_failure(assistant, capsys):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]

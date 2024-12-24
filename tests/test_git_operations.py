@@ -90,6 +90,11 @@ def test_stage_files(temp_git_repo):
         assert "stage_test.txt" not in untracked
         # Directly check if the file name is in the index
         assert any("stage_test.txt" in str(entry) for entry in git_ops.repo.index.entries.keys())
+
+        with pytest.raises(ValueError) as excinfo:
+            git_ops.stage_files([])
+        assert str(excinfo.value) == "No files to stage!"
+        
     finally:
         # Restore the original directory
         os.chdir(current_dir)
