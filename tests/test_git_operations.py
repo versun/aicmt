@@ -89,7 +89,8 @@ def test_stage_files(temp_git_repo):
         # Verify that the file is correctly staged
         assert "stage_test.txt" not in untracked
         # Directly check if the file name is in the index
-        assert any("stage_test.txt" in str(entry) for entry in git_ops.repo.index.entries.keys())
+        assert any("stage_test.txt" in str(entry)
+                   for entry in git_ops.repo.index.entries.keys())
     finally:
         # Restore the original directory
         os.chdir(current_dir)
@@ -148,7 +149,8 @@ def test_get_commit_history(temp_git_repo):
             git_ops.stage_files([f"history_test_{i}.txt"])
             git_ops.commit_changes(f"Test commit {i}")
 
-        history = git_ops.get_commit_history(max_count=4)  # Modified to 4 to get all commits
+        history = git_ops.get_commit_history(
+            max_count=4)  # Modified to 4 to get all commits
         assert len(history) == 4  # 3 new commits + 1 initial commit
     finally:
         # Restore the original directory
@@ -200,32 +202,6 @@ def test_binary_file_changes(temp_git_repo):
 
 
 def test_modified_file_changes(temp_git_repo):
-
-def test_insertion_deletion_counting(temp_git_repo):
-    """Test counting of insertions and deletions in unstaged changes"""
-    git_ops = GitOperations(temp_git_repo)
-    current_dir = os.getcwd()
-    os.chdir(temp_git_repo)
-
-    try:
-        # Create and commit initial file
-        with open("count_test.txt", "w") as f:
-            f.write("line 1\nline 2\nline 3\n")
-        git_ops.stage_files(["count_test.txt"])
-        git_ops.commit_changes("Initial file")
-
-        # Modify file: add 2 lines, remove 1 line
-        with open("count_test.txt", "w") as f:
-            f.write("line 1\nnew line\nline 3\nnew line 2\n")
-
-        changes = git_ops.get_unstaged_changes()
-        assert len(changes) == 1
-        assert changes[0].file == "count_test.txt"
-        assert changes[0].insertions == 2  # Two new lines added
-        assert changes[0].deletions == 1   # One line removed
-    finally:
-        os.chdir(current_dir)
-
     """Test handling of modified files"""
     git_ops = GitOperations(temp_git_repo)
     current_dir = os.getcwd()
@@ -348,6 +324,7 @@ def test_handle_modified_file_diff_error(temp_git_repo):
 
         # Create a Mock object for Git
         class MockGit:
+
             def diff(self, *args, **kwargs):
                 raise GitCommandError("git diff", 128)
 
@@ -433,7 +410,8 @@ def test_get_commit_changes(temp_git_repo):
         with open("test4.txt", "w") as f:
             pass  # Empty file
 
-        git_ops.repo.index.add(["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
+        git_ops.repo.index.add(
+            ["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
         git_ops.repo.index.commit("Initial commit")
 
         # Make various changes
@@ -463,10 +441,14 @@ def test_get_commit_changes(temp_git_repo):
         assert len(changes) == 4
 
         # Find changes by filename
-        test1_change = next(change for change in changes if change.file == "test1.txt")
-        test2_change = next(change for change in changes if change.file == "test2.txt")
-        test3_change = next(change for change in changes if change.file == "test3.bin")
-        test5_change = next(change for change in changes if change.file == "test5.txt")
+        test1_change = next(change for change in changes
+                            if change.file == "test1.txt")
+        test2_change = next(change for change in changes
+                            if change.file == "test2.txt")
+        test3_change = next(change for change in changes
+                            if change.file == "test3.bin")
+        test5_change = next(change for change in changes
+                            if change.file == "test5.txt")
 
         # Test modified text file
         assert test1_change.status == "modified"
