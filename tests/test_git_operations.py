@@ -200,6 +200,32 @@ def test_binary_file_changes(temp_git_repo):
 
 
 def test_modified_file_changes(temp_git_repo):
+
+def test_insertion_deletion_counting(temp_git_repo):
+    """Test counting of insertions and deletions in unstaged changes"""
+    git_ops = GitOperations(temp_git_repo)
+    current_dir = os.getcwd()
+    os.chdir(temp_git_repo)
+
+    try:
+        # Create and commit initial file
+        with open("count_test.txt", "w") as f:
+            f.write("line 1\nline 2\nline 3\n")
+        git_ops.stage_files(["count_test.txt"])
+        git_ops.commit_changes("Initial file")
+
+        # Modify file: add 2 lines, remove 1 line
+        with open("count_test.txt", "w") as f:
+            f.write("line 1\nnew line\nline 3\nnew line 2\n")
+
+        changes = git_ops.get_unstaged_changes()
+        assert len(changes) == 1
+        assert changes[0].file == "count_test.txt"
+        assert changes[0].insertions == 2  # Two new lines added
+        assert changes[0].deletions == 1   # One line removed
+    finally:
+        os.chdir(current_dir)
+
     """Test handling of modified files"""
     git_ops = GitOperations(temp_git_repo)
     current_dir = os.getcwd()
