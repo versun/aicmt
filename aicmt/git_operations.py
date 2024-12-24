@@ -56,12 +56,12 @@ class GitOperations:
         changes = []
 
         # Get modified files
-        modified_files = [item.a_path for item in self.repo.index.diff(None)]
+        modified_files = {item.a_path for item in self.repo.index.diff(None)}
 
         # Get untracked files
-        untracked_files = self.repo.untracked_files
+        untracked_files = set(self.repo.untracked_files)
 
-        for file_path in modified_files + untracked_files:
+        for file_path in modified_files.union(untracked_files):
             try:
                 file_path_obj = Path(file_path)
                 status = ""
@@ -74,17 +74,10 @@ class GitOperations:
                     status, diff = self._handle_untracked_file(
                         file_path, file_path_obj)
 
-                # Count insertions and deletions only if we have actual diff content
-                insertions = deletions = 0
                 if diff and not diff.startswith("["):
-                    insertions = len([
-                        line for line in diff.split("\n")
-                        if line.startswith("+")
-                    ])
-                    deletions = len([
-                        line for line in diff.split("\n")
-                        if line.startswith("-")
-                    ])
+                    insertions, deletions = self._calculate_diff_stats(diff)
+                else:
+                    insertions = deletions = 0
 
                 changes.append(
                     Change(
@@ -122,43 +115,14 @@ class GitOperations:
         for diff in diff_index:
             status = "error"
             content = ""
-            insertions = diff.insertions if hasattr(diff, "insertions") else 0
-            deletions = diff.deletions if hasattr(diff, "deletions") else 0
+            # insertions = diff.insertions if hasattr(diff, "insertions") else 0
+            # deletions = diff.deletions if hasattr(diff, "deletions") else 0
+            insertions = 0
+            deletions = 0
 
             try:
-                if diff.deleted_file:
-                    status = "deleted"
-                    content = "[File deleted]"
-                    insertions, deletions = 0, diff.a_blob.size if diff.a_blob else 0
-                elif diff.new_file:
-                    if diff.b_blob and diff.b_blob.is_binary:
-                        status = "new file (binary)"
-                        content = "[Binary file]"
-                    else:
-                        status = "new file"
-                        file_path = os.path.join(self.repo.working_dir,
-                                                 diff.b_path)
-                        try:
-                            with open(file_path, "r", encoding="utf-8") as f:
-                                content = f.read()
-                            insertions = len(content.splitlines())
-                            deletions = 0
-                        except IOError as e:
-                            content = f"[Error reading file: {str(e)}]"
-                else:
-                    status = "modified"
-                    try:
-                        content = self.repo.git.diff("--cached", diff.a_path)
-                        # Get detailed stats for modified files
-                        stats = self.repo.git.diff("--cached", "--numstat",
-                                                   diff.a_path).split()
-                        if len(stats) >= 2:
-                            insertions = int(
-                                stats[0]) if stats[0] != "-" else 0
-                            deletions = int(stats[1]) if stats[1] != "-" else 0
-                    except git.GitCommandError as e:
-                        content = f"[Error getting diff: {str(e)}]"
-
+                status, content, insertions, deletions = self._process_file_diff(
+                    diff)
             except Exception as e:
                 status = "error"
                 content = f"[Unexpected error: {str(e)}]"
@@ -171,6 +135,73 @@ class GitOperations:
                        deletions=deletions))
 
         return changes
+
+    def _process_file_diff(self, diff) -> Tuple:
+        """
+        Handles file differences in Git repositories.
+
+        Args.
+            diff: Git diff object containing information about file changes.
+
+        Returns.
+            tuple: (status, content, insertions, deletions)
+            - status: File status (deleted/new file/modified, etc.)
+            - content: file content or differences
+            - insertions: number of lines inserted
+            - deletions: number of lines deleted
+        """
+        status = ""
+        content = ""
+        insertions = 0
+        deletions = 0
+
+        if diff.deleted_file:
+            status = "deleted"
+            content = "[File deleted]"
+            insertions, deletions = 0, len(
+                diff.a_blob.data_stream.read().decode('utf-8').splitlines())
+        elif diff.new_file:
+            if diff.b_blob and diff.b_blob.mime_type != "text/plain":
+                status = "new file (binary)"
+                content = "[Binary file]"
+            else:
+                status = "new file"
+                file_path = os.path.join(self.repo.working_dir, diff.b_path)
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    insertions = len(content.splitlines())
+                    deletions = 0
+                except IOError as e:
+                    content = f"[Error reading file: {str(e)}]"
+        else:
+            status = "modified"
+            try:
+                # Check if the file is modified in the staging area
+                staged_diff = self.repo.git.diff("--cached", diff.a_path)
+                if staged_diff:
+                    content = staged_diff
+                    #stats = self.repo.git.diff("--cached", "--numstat",diff.a_path).split()
+                else:
+                    # If the file is not modified in the staging area, compare with the parent commit
+                    content = self.repo.git.diff("HEAD^", "HEAD", diff.a_path)
+                    #stats = self.repo.git.diff("HEAD^", "HEAD", "--numstat",diff.a_path).split()
+
+                insertions, deletions = self._calculate_diff_stats(content)
+            except git.GitCommandError as e:
+                content = f"[Error getting diff: {str(e)}]"
+
+        return status, content, insertions, deletions
+
+    def _calculate_diff_stats(self, diff_content: str) -> Tuple[int, int]:
+        """Caculates the number of inserted and deleted lines in a diff content"""
+        insertions = deletions = 0
+        for line in diff_content.split('\n'):
+            if line.startswith('+') and not line.startswith('+++'):
+                insertions += 1
+            elif line.startswith('-') and not line.startswith('---'):
+                deletions += 1
+        return insertions, deletions
 
     def _handle_modified_file(self, file_path: str,
                               file_path_obj: Path) -> Tuple[str, str]:
@@ -221,6 +252,18 @@ class GitOperations:
                 return "new file", f.read()
         except UnicodeDecodeError:
             return "new file (binary)", "[Binary file]"
+
+    def _handle_file_content(self, file_path: Path) -> Tuple[str, str]:
+        if not file_path.exists():
+            return "deleted", "[文件已删除]"
+
+        try:
+            content = file_path.read_bytes()
+            if b"\0" in content[:1024]:
+                return "new file (binary)", "[二进制文件]"
+            return "new file", file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return "new file (binary)", "[二进制文件]"
 
     def stage_files(self, files: List[str]) -> None:
         """Stage specified files
@@ -367,41 +410,14 @@ class GitOperations:
             for diff in diff_index:
                 status = "error"
                 content = ""
-                insertions = diff.insertions if hasattr(diff,
-                                                        "insertions") else 0
-                deletions = diff.deletions if hasattr(diff, "deletions") else 0
-
+                # insertions = diff.insertions if hasattr(diff,
+                #                                         "insertions") else 0
+                # deletions = diff.deletions if hasattr(diff, "deletions") else 0
+                insertions = 0
+                deletions = 0
                 try:
-                    if diff.deleted_file:
-                        status = "deleted"
-                        content = "[File deleted]"
-                        insertions, deletions = 0, diff.a_blob.size if diff.a_blob else 0
-                    elif diff.new_file:
-                        if diff.b_blob:
-                            try:
-                                content = diff.b_blob.data_stream.read(
-                                ).decode("utf-8")
-                                status = "new file"
-                                insertions = len(content.splitlines())
-                                deletions = 0
-                            except UnicodeDecodeError:
-                                status = "new file (binary)"
-                                content = "[Binary file]"
-                        else:
-                            status = "new file"
-                            content = "[Empty file]"
-                    else:
-                        status = "modified"
-                        content = self.repo.git.diff(
-                            f"{parent.hexsha}..{commit.hexsha}", diff.b_path)
-                        stats = self.repo.git.diff(
-                            f"{parent.hexsha}..{commit.hexsha}", "--numstat",
-                            diff.b_path).split()
-                        if len(stats) >= 2:
-                            insertions = int(
-                                stats[0]) if stats[0] != "-" else 0
-                            deletions = int(stats[1]) if stats[1] != "-" else 0
-
+                    status, content, insertions, deletions = self._process_file_diff(
+                        diff)
                 except Exception as e:
                     status = "error"
                     content = f"[Unexpected error: {str(e)}]"
