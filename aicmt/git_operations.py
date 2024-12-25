@@ -57,7 +57,6 @@ def safe_file_operation(file_path: Union[str, Path]) -> Any:
 
 
 class GitOperations:
-
     def __init__(self, repo_path: str = "."):
         """Initialize GitOperations with a repository path
 
@@ -72,8 +71,7 @@ class GitOperations:
             self.repo = Repo(repo_path)
             self.git = self.repo.git
         except git.InvalidGitRepositoryError:
-            raise git.InvalidGitRepositoryError(
-                f"'{repo_path}' is not a valid Git repository")
+            raise git.InvalidGitRepositoryError(f"'{repo_path}' is not a valid Git repository")
         except git.NoSuchPathError:
             raise git.NoSuchPathError(f"Path '{repo_path}' does not exist")
 
@@ -91,8 +89,7 @@ class GitOperations:
         try:
             with file_path.open("rb") as f:
                 chunk = f.read(MAX_BINARY_CHECK_SIZE)
-                return b"\0" in chunk or not chunk.decode("utf-8",
-                                                          errors="ignore")
+                return b"\0" in chunk or not chunk.decode("utf-8", errors="ignore")
 
         except IOError:
             return False
@@ -132,39 +129,21 @@ class GitOperations:
         for item in self.repo.index.diff(None):
             try:
                 path_obj = Path(item.a_path)
-                file_status, diff = self._handle_modified_file(
-                    item.a_path, path_obj)
-                insertions, deletions = (0, 0) if diff.startswith(
-                    "[") else self._calculate_diff_stats(diff)
-                changes.append(
-                    Change(file=item.a_path,
-                           status=file_status,
-                           diff=diff,
-                           insertions=insertions,
-                           deletions=deletions))
+                file_status, diff = self._handle_modified_file(item.a_path, path_obj)
+                insertions, deletions = (0, 0) if diff.startswith("[") else self._calculate_diff_stats(diff)
+                changes.append(Change(file=item.a_path, status=file_status, diff=diff, insertions=insertions, deletions=deletions))
             except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not process {item.a_path}: {str(e)}[/yellow]"
-                )
+                console.print(f"[yellow]Warning: Could not process {item.a_path}: {str(e)}[/yellow]")
 
         # Handle untracked files separately
         for file_path in self.repo.untracked_files:
             try:
                 path_obj = Path(file_path)
-                file_status, diff = self._handle_untracked_file(
-                    file_path, path_obj)
-                insertions = len(
-                    diff.splitlines()) if not diff.startswith("[") else 0
-                changes.append(
-                    Change(file=file_path,
-                           status=file_status,
-                           diff=diff,
-                           insertions=insertions,
-                           deletions=0))
+                file_status, diff = self._handle_untracked_file(file_path, path_obj)
+                insertions = len(diff.splitlines()) if not diff.startswith("[") else 0
+                changes.append(Change(file=file_path, status=file_status, diff=diff, insertions=insertions, deletions=0))
             except Exception as e:
-                console.print(
-                    f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]"
-                )
+                console.print(f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]")
 
         return changes
 
@@ -193,18 +172,12 @@ class GitOperations:
             deletions = 0
 
             try:
-                status, content, insertions, deletions = self._process_file_diff(
-                    diff)
+                status, content, insertions, deletions = self._process_file_diff(diff)
             except Exception as e:
                 status = FileStatus.ERROR
                 content = f"[Unexpected error: {str(e)}]"
 
-            changes.append(
-                Change(file=diff.b_path or diff.a_path,
-                       status=status,
-                       diff=content,
-                       insertions=insertions,
-                       deletions=deletions))
+            changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
 
         return changes
 
@@ -224,9 +197,7 @@ class GitOperations:
         """
         if diff.deleted_file:
             try:
-                return (FileStatus.DELETED, DELETED_MESSAGE, 0,
-                        len(diff.a_blob.data_stream.read().decode(
-                            "utf-8").splitlines()))
+                return (FileStatus.DELETED, DELETED_MESSAGE, 0, len(diff.a_blob.data_stream.read().decode("utf-8").splitlines()))
             except Exception:
                 return FileStatus.DELETED, DELETED_MESSAGE, 0, 0
 
@@ -237,8 +208,7 @@ class GitOperations:
             file_path = Path(self.repo.working_dir) / diff.b_path
             with safe_file_operation(file_path):
                 content = file_path.read_text(encoding="utf-8")
-                return FileStatus.NEW_FILE, content, len(
-                    content.splitlines()), 0
+                return FileStatus.NEW_FILE, content, len(content.splitlines()), 0
 
         # Handle modified files
         try:
@@ -272,8 +242,7 @@ class GitOperations:
                 deletions += 1
         return insertions, deletions
 
-    def _handle_modified_file(self, file_path: str,
-                              file_path_obj: Path) -> Tuple[str, str]:
+    def _handle_modified_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
         """Handle modified file status and diff generation
 
         Args:
@@ -294,8 +263,7 @@ class GitOperations:
             # If file exists but diff failed, something else is wrong
             raise IOError(f"Failed to get diff for {file_path}")
 
-    def _handle_untracked_file(self, file_path: str,
-                               file_path_obj: Path) -> Tuple[str, str]:
+    def _handle_untracked_file(self, file_path: str, file_path_obj: Path) -> Tuple[str, str]:
         """Handle untracked file status and content reading
 
         Args:
@@ -311,8 +279,7 @@ class GitOperations:
         try:
             # Check if file is binary
             with open(file_path, "rb") as f:
-                content = f.read(
-                    1024 * 1024)  # Read first MB to check for binary content
+                content = f.read(1024 * 1024)  # Read first MB to check for binary content
                 if b"\0" in content:
                     return FileStatus.NEW_BINARY, BINARY_MESSAGE
 
@@ -340,8 +307,7 @@ class GitOperations:
 
             for file in files:
                 # Find status for this file
-                file_status = next(
-                    (s for s in status if s.split()[-1] == file), None)
+                file_status = next((s for s in status if s.split()[-1] == file), None)
                 if file_status and file_status.startswith(" D"):
                     # File is deleted, use remove
                     self.repo.index.remove([file])
@@ -349,8 +315,7 @@ class GitOperations:
                     # File is modified or new, use add
                     self.repo.index.add([file])
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to stage files: {str(e)}",
-                                      e.status, e.stderr) from e
+            raise git.GitCommandError(f"Failed to stage files: {str(e)}", e.status, e.stderr) from e
 
     def commit_changes(self, message: str) -> None:
         """Create a commit with the staged changes
@@ -364,12 +329,9 @@ class GitOperations:
         try:
             self.repo.index.commit(message)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to commit changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to commit changes: {str(e)}", e.status, e.stderr)
 
-    def push_changes(self,
-                     remote: str = DEFAULT_REMOTE,
-                     branch: Optional[str] = None) -> None:
+    def push_changes(self, remote: str = DEFAULT_REMOTE, branch: Optional[str] = None) -> None:
         """Push commits to remote repository
 
         Args:
@@ -385,8 +347,7 @@ class GitOperations:
             origin = self.repo.remote(remote)
             origin.push(branch)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to push changes: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to push changes: {str(e)}", e.status, e.stderr)
 
     def get_current_branch(self) -> str:
         """Get the name of the current branch
@@ -400,8 +361,7 @@ class GitOperations:
         try:
             return self.repo.active_branch.name
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get current branch: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get current branch: {str(e)}", e.status, e.stderr)
 
     def checkout_branch(self, branch_name: str, create: bool = False) -> None:
         """Checkout a branch
@@ -418,8 +378,7 @@ class GitOperations:
                 self.repo.create_head(branch_name)
             self.repo.git.checkout(branch_name)
         except git.GitCommandError as e:
-            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}",
-                                      e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to checkout branch: {str(e)}", e.status, e.stderr)
 
     def get_commit_changes(self, commit_hash: str) -> List[Change]:
         """Get changes from a specific commit
@@ -435,8 +394,7 @@ class GitOperations:
         """
         try:
             commit = self.repo.commit(commit_hash)
-            parent = commit.parents[0] if commit.parents else self.repo.tree(
-                "4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+            parent = commit.parents[0] if commit.parents else self.repo.tree("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
 
             changes = []
             diff_index = parent.diff(commit)
@@ -447,20 +405,13 @@ class GitOperations:
                 insertions = 0
                 deletions = 0
                 try:
-                    status, content, insertions, deletions = self._process_file_diff(
-                        diff)
+                    status, content, insertions, deletions = self._process_file_diff(diff)
                 except Exception as e:
                     status = FileStatus.ERROR
                     content = f"[Unexpected error: {str(e)}]"
 
-                changes.append(
-                    Change(file=diff.b_path or diff.a_path,
-                           status=status,
-                           diff=content,
-                           insertions=insertions,
-                           deletions=deletions))
+                changes.append(Change(file=diff.b_path or diff.a_path, status=status, diff=content, insertions=insertions, deletions=deletions))
 
             return changes
         except git.GitCommandError as e:
-            raise git.GitCommandError(
-                f"Failed to get commit changes: {str(e)}", e.status, e.stderr)
+            raise git.GitCommandError(f"Failed to get commit changes: {str(e)}", e.status, e.stderr)
