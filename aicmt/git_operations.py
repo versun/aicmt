@@ -48,7 +48,8 @@ def safe_file_operation(file_path: Union[str, Path]) -> Any:
     try:
         yield
     except UnicodeDecodeError:
-        return FileStatus.NEW_BINARY, BINARY_MESSAGE
+       return FileStatus.NEW_BINARY, BINARY_MESSAGE
+       #yield (FileStatus.NEW_BINARY, BINARY_MESSAGE)
     except IOError as e:
         CLIInterface.display_error(f"Error reading file {file_path}: {str(e)}")
         raise
@@ -193,6 +194,13 @@ class GitOperations:
             - insertions: number of lines inserted
             - deletions: number of lines deleted
         """
+        if diff.renamed_file:
+            try:
+                content = f"Renamed from {diff.rename_from} to {diff.rename_to}"
+                return FileStatus.MODIFIED, content, 0, 0
+            except Exception as e:
+                return FileStatus.ERROR, f"[Error processing rename: {str(e)}]", 0, 0
+
         if diff.deleted_file:
             try:
                 return (FileStatus.DELETED, DELETED_MESSAGE, 0, len(diff.a_blob.data_stream.read().decode("utf-8").splitlines()))
