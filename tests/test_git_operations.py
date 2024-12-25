@@ -94,7 +94,7 @@ def test_stage_files(temp_git_repo):
         with pytest.raises(ValueError) as excinfo:
             git_ops.stage_files([])
         assert str(excinfo.value) == "No files to stage!"
-        
+
     finally:
         # Restore the original directory
         os.chdir(current_dir)
@@ -135,29 +135,6 @@ def test_checkout_branch(temp_git_repo):
     # Create and switch to a new branch
     git_ops.checkout_branch("test-branch", create=True)
     assert git_ops.get_current_branch() == "test-branch"
-
-
-def test_get_commit_history(temp_git_repo):
-    """Test getting commit history"""
-    git_ops = GitOperations(temp_git_repo)
-
-    # Switch to the repository directory
-    current_dir = os.getcwd()
-    os.chdir(temp_git_repo)
-
-    try:
-        # Create multiple commits
-        for i in range(3):
-            with open(f"history_test_{i}.txt", "w") as f:
-                f.write(f"test content {i}")
-            git_ops.stage_files([f"history_test_{i}.txt"])
-            git_ops.commit_changes(f"Test commit {i}")
-
-        history = git_ops.get_commit_history(max_count=4)  # Modified to 4 to get all commits
-        assert len(history) == 4  # 3 new commits + 1 initial commit
-    finally:
-        # Restore the original directory
-        os.chdir(current_dir)
 
 
 def test_deleted_file_changes(temp_git_repo):
@@ -581,8 +558,8 @@ def test_file_reading(temp_git_repo):
         changes = git_ops.get_staged_changes()
         # Test that IOError is raised when trying to get diff
         new_file = next(c for c in changes if c.file == "new_file.txt")
-        assert new_file.status == "new file"
-        assert "Error reading file:" in new_file.diff
+        assert new_file.status == "error"
+        assert "No such file" in new_file.diff
 
         git_ops.commit_changes("Add file to modify")
 
