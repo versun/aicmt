@@ -15,7 +15,7 @@ class Change(NamedTuple):
     Attributes:
         file: Path to the changed file
         status: Current status of the file ('modified', 'deleted', 'new file', etc.)
-        diff: Actual changes or special messages ('[File deleted]', '[Binary file]')
+        diff: Actual changes or special messages ('[File deleted]', 'BINARY_MESSAGE')
         insertions: Number of inserted lines
         deletions: Number of deleted lines
     """
@@ -120,7 +120,7 @@ class GitOperations:
             - status can be one of:
                 "modified", "deleted", "new file", "new file (binary)", "error"
             - diff contains the actual changes or special messages:
-                "[File deleted]", "[Binary file]"
+                DELETED_MESSAGE, BINARY_MESSAGE
 
         Raises:
             IOError: If there is an error reading a file
@@ -176,7 +176,7 @@ class GitOperations:
             - status can be one of:
                 "modified", "deleted", "new file", "new file (binary)", "error"
             - diff contains the actual changes or special messages:
-                "[File deleted]", "[Binary file]"
+                DELETED_MESSAGE, BINARY_MESSAGE
             - insertions and deletions contain the number of added/removed lines
 
         Raises:
