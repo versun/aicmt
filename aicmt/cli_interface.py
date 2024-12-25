@@ -13,7 +13,8 @@ WELCOME_MESSAGE = "AICMT (AI Commit)\nAnalyze and organize your changes into mea
 
 class CLIInterface:
     def __init__(self):
-        self.console = Console()
+        pass
+        # self.console = Console()
 
     def display_welcome(self):
         """Display welcome message"""
@@ -24,9 +25,25 @@ class CLIInterface:
             )
         )
 
-    def display_info(self, message: str):
+    @classmethod
+    def display_info(cls, message: str):
         """Display information message"""
         console.print(f"[bold blue]{message}[/bold blue]")
+
+    @classmethod
+    def display_error(cls, message: str):
+        """Display error message"""
+        console.print(f"[bold red]Error:[/bold red] {message}")
+
+    @classmethod
+    def display_success(cls, message: str):
+        """Display success message"""
+        console.print(f"[bold green]✓[/bold green] {message}")
+
+    @classmethod
+    def display_warning(cls, message: str):
+        """Display warning message"""
+        console.print(f"[bold yellow]⚠️[/bold yellow] {message}")
 
     def display_changes(self, changes: list):
         """Display current unstaged changes"""
@@ -100,14 +117,6 @@ class CLIInterface:
             return Confirm.ask("\nDo you want to push the commits?")
         except EOFError:
             return False
-
-    def display_error(self, message: str):
-        """Display error message"""
-        console.print(f"[bold red]Error:[/bold red] {message}")
-
-    def display_success(self, message: str):
-        """Display success message"""
-        console.print(f"[bold green]✓[/bold green] {message}")
 
     def display_repo_info(self, working_dir: str, branch: str):
         """Display repository information"""
