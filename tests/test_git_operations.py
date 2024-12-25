@@ -54,11 +54,11 @@ def test_get_unstaged_changes(temp_git_repo):
         # Create a new file and add it to git
         with open("test.txt", "w") as f:
             f.write("test content")
-        
+
         # Add file to git and modify it
         git_ops.repo.index.add(["test.txt"])
         git_ops.repo.index.commit("Initial commit")
-        
+
         with open("test.txt", "w") as f:
             f.write("modified content")
 
@@ -72,8 +72,8 @@ def test_get_unstaged_changes(temp_git_repo):
             raise Exception("Test error")
 
         # Patch the _handle_modified_file method to raise an exception
-        with patch.object(GitOperations, '_handle_modified_file', side_effect=mock_handle_modified_file):
-            with patch('aicmt.cli_interface.CLIInterface.display_warning') as mock_warning:
+        with patch.object(GitOperations, "_handle_modified_file", side_effect=mock_handle_modified_file):
+            with patch("aicmt.cli_interface.CLIInterface.display_warning") as mock_warning:
                 changes = git_ops.get_unstaged_changes()
                 mock_warning.assert_called_once_with("Warning: Could not process test.txt: Test error")
 
@@ -623,25 +623,24 @@ def test_file_reading(temp_git_repo):
 def test_safe_file_operation(temp_git_repo):
     """Test the safe_file_operation context manager"""
     test_file = Path(temp_git_repo) / "test.txt"
-    
+
     # Test normal operation
     with safe_file_operation(test_file):
         with open(test_file, "w") as f:
             f.write("test content")
-    
+
     assert test_file.exists()
     assert test_file.read_text() == "test content"
-    
+
     # Test UnicodeDecodeError handling
     binary_file = Path(temp_git_repo) / "binary.bin"
-    binary_file.write_bytes(b'\x80\x81')
-    
+    binary_file.write_bytes(b"\x80\x81")
+
     with safe_file_operation(binary_file) as result:
         with open(binary_file, "r") as f:
-            content = f.read()
+            f.read()
         assert result == (FileStatus.NEW_BINARY, BINARY_MESSAGE)
-    
-   
+
     # Test IOError handling
     non_existent_file = Path(temp_git_repo) / "non_existent.txt"
     with pytest.raises(IOError):
@@ -678,21 +677,21 @@ def test_is_binary_file(temp_git_repo):
 
 def test_get_file_content(tmp_path):
     git_ops = GitOperations()
-    
+
     # Test text file
     text_file = tmp_path / "test.txt"
     text_file.write_text("Hello, World!", encoding="utf-8")
     status, content = git_ops._get_file_content(text_file)
     assert status == FileStatus.NEW_FILE
     assert content == "Hello, World!"
-    
+
     # Test binary file
     binary_file = tmp_path / "test.bin"
-    binary_file.write_bytes(b'\x00\x01\x02\x03')
+    binary_file.write_bytes(b"\x00\x01\x02\x03")
     status, content = git_ops._get_file_content(binary_file)
     assert status == FileStatus.NEW_BINARY
     assert content == BINARY_MESSAGE
-    
+
     # Test non-existent file
     non_existent = tmp_path / "non_existent.txt"
     with pytest.raises(FileNotFoundError):
@@ -711,11 +710,11 @@ def test_file_processing_warning(temp_git_repo):
         # Create a new file and add it to git
         with open("test.txt", "w") as f:
             f.write("test content")
-        
+
         # Add file to git and modify it
         git_ops.repo.index.add(["test.txt"])
         git_ops.repo.index.commit("Initial commit")
-        
+
         with open("test.txt", "w") as f:
             f.write("modified content")
 
@@ -724,9 +723,9 @@ def test_file_processing_warning(temp_git_repo):
             raise Exception("Test error")
 
         # Patch the _handle_modified_file method to raise an exception
-        with patch.object(GitOperations, '_handle_modified_file', side_effect=mock_handle_modified_file):
-            with patch('aicmt.cli_interface.CLIInterface.display_warning') as mock_warning:
-                changes = git_ops.get_unstaged_changes()
+        with patch.object(GitOperations, "_handle_modified_file", side_effect=mock_handle_modified_file):
+            with patch("aicmt.cli_interface.CLIInterface.display_warning") as mock_warning:
+                git_ops.get_unstaged_changes()
                 mock_warning.assert_called_once_with("Warning: Could not process test.txt: Test error")
 
     finally:
@@ -752,9 +751,9 @@ def test_untracked_file_warning(temp_git_repo):
             raise Exception("Test error")
 
         # Patch the _handle_untracked_file method to raise an exception
-        with patch.object(GitOperations, '_handle_untracked_file', side_effect=mock_handle_untracked_file):
-            with patch('aicmt.cli_interface.CLIInterface.display_warning') as mock_warning:
-                changes = git_ops.get_unstaged_changes()
+        with patch.object(GitOperations, "_handle_untracked_file", side_effect=mock_handle_untracked_file):
+            with patch("aicmt.cli_interface.CLIInterface.display_warning") as mock_warning:
+                git_ops.get_unstaged_changes()
                 mock_warning.assert_called_once_with("Warning: Could not process test.txt: Test error")
 
     finally:
@@ -765,7 +764,7 @@ def test_untracked_file_warning(temp_git_repo):
 def test_process_file_diff_deleted_exception(temp_git_repo):
     """Test _process_file_diff method when file deletion raises an exception"""
     git_ops = GitOperations(temp_git_repo)
-    
+
     # Create a mock diff object
     class MockDiff:
         def __init__(self):
@@ -774,7 +773,7 @@ def test_process_file_diff_deleted_exception(temp_git_repo):
             self.renamed_file = False
             self.new_file = False
             self.a_blob = None
-    
+
     # Test when an exception occurs during file deletion handling
     diff = MockDiff()
     status, content, insertions, deletions = git_ops._process_file_diff(diff)
@@ -787,7 +786,7 @@ def test_process_file_diff_deleted_exception(temp_git_repo):
 def test_process_file_diff_git_error(temp_git_repo):
     """Test _process_file_diff method when git command raises an error"""
     git_ops = GitOperations(temp_git_repo)
-    
+
     # Create a mock diff object
     class MockDiff:
         def __init__(self):
@@ -795,13 +794,13 @@ def test_process_file_diff_git_error(temp_git_repo):
             self.deleted_file = False
             self.new_file = False
             self.renamed_file = False
-    
+
     # Create a mock git object
     mock_git = MagicMock()
-    mock_git.diff.side_effect = GitCommandError('git diff', 128)
-    
+    mock_git.diff.side_effect = GitCommandError("git diff", 128)
+
     # Test when git command raises an error
-    with patch.object(git_ops.repo, 'git', mock_git):
+    with patch.object(git_ops.repo, "git", mock_git):
         status, content, insertions, deletions = git_ops._process_file_diff(MockDiff())
         assert status == FileStatus.ERROR
         assert "[Error getting diff: " in content

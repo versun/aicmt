@@ -48,8 +48,8 @@ def safe_file_operation(file_path: Union[str, Path]) -> Any:
     try:
         yield
     except UnicodeDecodeError:
-       return FileStatus.NEW_BINARY, BINARY_MESSAGE
-       #yield (FileStatus.NEW_BINARY, BINARY_MESSAGE)
+        return FileStatus.NEW_BINARY, BINARY_MESSAGE
+        # yield (FileStatus.NEW_BINARY, BINARY_MESSAGE)
     except IOError as e:
         CLIInterface.display_error(f"Error reading file {file_path}: {str(e)}")
         raise
