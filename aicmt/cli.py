@@ -11,8 +11,8 @@ console = Console()
 
 
 class AiCommit:
-    def __init__(self):
-        self.git_ops = GitOperations()
+    def __init__(self, repo_path: str = "."):
+        self.git_ops = GitOperations(repo_path)
         self.ai_analyzer = AIAnalyzer()
         self.cli = CLIInterface()
 

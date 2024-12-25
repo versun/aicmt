@@ -1,22 +1,15 @@
 import pytest
-import os
+from git import Repo
 from unittest.mock import patch
 from aicmt.cli import AiCommit, cli
 from aicmt.git_operations import Change
 
 
 @pytest.fixture
-def assistant(monkeypatch):
+def assistant(monkeypatch, tmp_path):
     monkeypatch.setattr("aicmt.config._load_cli_config", lambda: {})
-    return AiCommit()
-
-
-@pytest.fixture
-def temp_git_dir(tmp_path):
-    old_cwd = os.getcwd()
-    os.chdir(tmp_path)
-    yield tmp_path
-    os.chdir(old_cwd)
+    Repo.init(tmp_path)
+    return AiCommit(repo_path=str(tmp_path))
 
 
 def test_git_commit_assistant_init(assistant):
@@ -38,17 +31,17 @@ def test_run_keyboard_interrupt(assistant, capsys):
     assert "Operation cancelled by user" in captured.out
 
 
-def test_run_no_changes(assistant, temp_git_dir):
+def test_run_no_changes(assistant):
     with patch("aicmt.git_operations.GitOperations.get_unstaged_changes", return_value=[]):
         with pytest.raises(SystemExit):
             assistant.run()
 
 
 @patch("rich.prompt.Confirm.ask")
-def test_run_successful_flow(mock_confirm, assistant, temp_git_dir):
+def test_run_successful_flow(mock_confirm, assistant):
     # Mock necessary dependencies
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
-    commit_groups = [{"files": ["test.py"], "commit_message": "test commit"}]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
     # Mock user confirmation to always return True
     mock_confirm.return_value = True
@@ -67,9 +60,9 @@ def test_run_successful_flow(mock_confirm, assistant, temp_git_dir):
 
 
 @patch("rich.prompt.Confirm.ask")
-def test_run_commit_error(mock_confirm, assistant, temp_git_dir):
+def test_run_commit_error(mock_confirm, assistant):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
-    commit_groups = [{"files": ["test.py"], "commit_message": "test commit"}]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
     # Mock user confirmation
     mock_confirm.return_value = True
@@ -87,9 +80,9 @@ def test_run_commit_error(mock_confirm, assistant, temp_git_dir):
 
 
 @patch("rich.prompt.Confirm.ask")
-def test_run_push_error(mock_confirm, assistant, temp_git_dir):
+def test_run_push_error(mock_confirm, assistant):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
-    commit_groups = [{"files": ["test.py"], "commit_message": "test commit"}]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
     # Mock user confirmation
     mock_confirm.return_value = True
@@ -109,7 +102,7 @@ def test_run_push_error(mock_confirm, assistant, temp_git_dir):
 
 @patch("aicmt.cli.parse_args")
 @patch("aicmt.cli.AiCommit")
-def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys, temp_git_dir):
+def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys):
     # Mock AiCommit to raise a runtime error
     mock_instance = mock_assistant.return_value
     mock_instance.run.side_effect = Exception("Simulated runtime error")
@@ -127,9 +120,9 @@ def test_cli_runtime_error(mock_assistant, mock_parse_args, capsys, temp_git_dir
 
 
 @patch("rich.prompt.Confirm.ask")
-def test_run_no_approved_groups(mock_confirm, assistant, temp_git_dir):
+def test_run_no_approved_groups(mock_confirm, assistant):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
-    commit_groups = [{"files": ["test.py"], "commit_message": "test commit"}]
+    commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
     # Mock user confirmation
     mock_confirm.return_value = True
@@ -140,14 +133,14 @@ def test_run_no_approved_groups(mock_confirm, assistant, temp_git_dir):
                 assistant.run()
 
 
-def test_create_new_commits(assistant, capsys, temp_git_dir):
+def test_create_new_commits(assistant, capsys):
     commit_groups = [{"files": [], "commit_message": "test commit", "description": "test description"}]
     assistant._create_new_commits(commit_groups)
     captured = capsys.readouterr()
     assert "No files to stage!" in captured.out
 
 
-def test_commit_creation_failure(assistant, capsys, temp_git_dir):
+def test_commit_creation_failure(assistant, capsys):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
     commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
@@ -167,7 +160,7 @@ def test_commit_creation_failure(assistant, capsys, temp_git_dir):
                 assert "Failed to create commit" in captured.out
 
 
-def test_push_confirmation_declined(assistant, temp_git_dir):
+def test_push_confirmation_declined(assistant):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
     commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
@@ -179,7 +172,7 @@ def test_push_confirmation_declined(assistant, temp_git_dir):
                 assistant.run()
 
 
-def test_push_changes_failure(assistant, temp_git_dir):
+def test_push_changes_failure(assistant):
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
     commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
 
@@ -196,7 +189,7 @@ def test_push_changes_failure(assistant, temp_git_dir):
                 assistant.run()
 
 
-def test_push_changes_network_error(assistant, temp_git_dir):
+def test_push_changes_network_error(assistant):
     """Test push changes fails due to network error"""
     changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
     commit_groups = [{"files": ["test.py"], "commit_message": "test commit", "description": "test description"}]
@@ -214,7 +207,7 @@ def test_push_changes_network_error(assistant, temp_git_dir):
                 assistant.run()
 
 
-def test_run_with_staged_changes(assistant, capsys, temp_git_dir):
+def test_run_with_staged_changes(assistant, capsys):
     """Test that the correct message is displayed when staged changes are found"""
     staged_changes = [Change(file="test.py", status="modified", diff="test diff", insertions=1, deletions=0)]
 
