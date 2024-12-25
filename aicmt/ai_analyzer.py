@@ -2,9 +2,7 @@ from typing import List, Dict
 import json
 from openai import OpenAI, OpenAIError
 from .config import load_config
-from rich.console import Console
-
-console = Console()
+from .cli_interface import CLIInterface
 
 
 class AIAnalyzer:
@@ -36,13 +34,13 @@ class AIAnalyzer:
     def analyze_changes(self, changes: list) -> List[Dict]:
         """Analyze changes and suggest commit groupings"""
         if not changes:
-            console.print("No changes to analyze, returning empty list")
+            CLIInterface.display_info("No changes to analyze, returning empty list")
             return []
 
         try:
             self._client()
             if not self.client:
-                console.print("[red]Error: Failed to initialize the OpenAI client[/red]")
+                CLIInterface.display_error("Failed to initialize the OpenAI client")
                 return []
 
             def process_batch(batch_changes):
@@ -77,7 +75,7 @@ class AIAnalyzer:
                 if "maximum context length" not in str(e).lower():
                     raise e
 
-                console.print("[yellow]Changes exceed token limit, switching to batch processing...[/yellow]")
+                CLIInterface.display_warning("Changes exceed token limit, switching to batch processing...")
 
                 # If failed, switch to smart batch processing
                 all_results = []
@@ -116,7 +114,7 @@ class AIAnalyzer:
                     except OpenAIError as batch_e:
                         if "maximum context length" in str(batch_e).lower():
                             batch_size = max(1, batch_size // 2)
-                            console.print(f"[yellow]Reducing batch size to {batch_size} and retrying...[/yellow]")
+                            CLIInterface.display_warning(f"Reducing batch size to {batch_size} and retrying...")
                             continue
                         raise batch_e
 
@@ -192,20 +190,20 @@ class AIAnalyzer:
         # Get analysis prompt from config
         prompt = self.CONFIG.get("analysis_prompt", "")
         if not prompt:
-            console.print("[yellow]Warning: Analysis prompt not found, using default value[/yellow]")
+            CLIInterface.display_warning("Analysis prompt not found, using default value")
 
         # Add commit number to prompt
         if self.CONFIG.get("num_commits"):
-            console.print(f"[yellow] Set commit num: {self.CONFIG['num_commits']} [/yellow]")
+            CLIInterface.display_warning(f" Set commit num: {self.CONFIG['num_commits']} ")
             prompt += f"\nImportant: You must group the changes into exactly {self.CONFIG['num_commits']} commits."
 
         # Validate prompt format
         if not isinstance(prompt, str):
-            console.print("Invalid prompt type: %s", type(prompt))
+            CLIInterface.display_error(f"Invalid prompt type: {type(prompt)}")
             raise ValueError("Prompt must be a string type")
 
         if len(prompt.strip()) < 10:
-            console.print("[yellow]Warning: Prompt is too short, may affect analysis quality[/yellow]")
+            CLIInterface.display_warning("Prompt is too short, may affect analysis quality")
 
         return prompt
 

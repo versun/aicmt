@@ -1,10 +1,8 @@
 import configparser
 from pathlib import Path
 from typing import Dict, Any
-from rich.console import Console
 from .cli_args import parse_args
-
-console = Console()
+from .cli_interface import CLIInterface
 
 # Default configuration settings for OpenAI API integration and prompt templates
 _DEFAULT_CONFIG = {
@@ -103,8 +101,8 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
                             result[key] = "\n".join(processed_lines)
 
     except configparser.Error as e:
-        console.print(
-            f"[yellow]Warning: Failed to parse config file {config_path}[/yellow]\n"
+        CLIInterface.display_warning(
+            f"Warning: Failed to parse config file {config_path}\n"
             f"[blue]Error message: {str(e)}[/blue]\n"
             "[yellow]Please check the following:[/yellow]\n"
             "1. Ensure the config file format is correct\n"
@@ -112,8 +110,8 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
             "3. Ensure the file is saved with UTF-8 encoding"
         )
     except Exception as e:
-        console.print(
-            f"[yellow]Warning: Unexpected error occurred while reading config file {config_path}[/yellow]\n"
+        CLIInterface.display_warning(
+            f"Warning: Unexpected error occurred while reading config file {config_path}\n"
             f"[blue]Error message: {str(e)}[/blue]\n"
             "[yellow]Suggested actions:[/yellow]\n"
             "1. Check file permissions\n"
@@ -177,7 +175,7 @@ def load_config() -> Dict[str, Any]:
     try:
         validate_config(config)
     except ValueError as e:
-        console.print(f"[red]Configuration Error:[/red] {str(e)}")
+        CLIInterface.display_error(f"Configuration Error: {str(e)}")
         raise
 
     return config
@@ -238,4 +236,4 @@ def validate_config(config: Dict[str, Any]):
     prompt = config.get("analysis_prompt")
     if prompt:
         if len(prompt.strip()) < 10:
-            console.print(f"[yellow]Warning: analysis prompt is too short " f"({len(prompt.strip())} characters), " "this may affect analysis quality[/yellow]")
+            CLIInterface.display_warning(f"Warning: analysis prompt is too short " f"({len(prompt.strip())} characters), " "this may affect analysis quality")

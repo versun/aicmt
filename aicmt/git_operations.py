@@ -2,11 +2,9 @@ from contextlib import contextmanager
 from typing import List, NamedTuple, Optional, Tuple, Union, Any
 import git
 from git import Repo
-from rich.console import Console
 from pathlib import Path
 from enum import Enum
-
-console = Console()
+from .cli_interface import CLIInterface
 
 
 class Change(NamedTuple):
@@ -52,7 +50,7 @@ def safe_file_operation(file_path: Union[str, Path]) -> Any:
     except UnicodeDecodeError:
         return FileStatus.NEW_BINARY, BINARY_MESSAGE
     except IOError as e:
-        console.print(f"[red]Error reading file {file_path}: {str(e)}[/red]")
+        CLIInterface.display_error(f"Error reading file {file_path}: {str(e)}")
         raise
 
 
@@ -133,7 +131,7 @@ class GitOperations:
                 insertions, deletions = (0, 0) if diff.startswith("[") else self._calculate_diff_stats(diff)
                 changes.append(Change(file=item.a_path, status=file_status, diff=diff, insertions=insertions, deletions=deletions))
             except Exception as e:
-                console.print(f"[yellow]Warning: Could not process {item.a_path}: {str(e)}[/yellow]")
+                CLIInterface.display_warning(f"Warning: Could not process {item.a_path}: {str(e)}")
 
         # Handle untracked files separately
         for file_path in self.repo.untracked_files:
@@ -143,7 +141,7 @@ class GitOperations:
                 insertions = len(diff.splitlines()) if not diff.startswith("[") else 0
                 changes.append(Change(file=file_path, status=file_status, diff=diff, insertions=insertions, deletions=0))
             except Exception as e:
-                console.print(f"[yellow]Warning: Could not process {file_path}: {str(e)}[/yellow]")
+                CLIInterface.display_warning(f"Warning: Could not process {file_path}: {str(e)}")
 
         return changes
 

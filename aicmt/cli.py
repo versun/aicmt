@@ -77,5 +77,5 @@ def cli():
         assistant.run()
     except Exception as e:
         # Other runtime errors
-        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+        CLIInterface.display_error(str(e))
         sys.exit(1)
