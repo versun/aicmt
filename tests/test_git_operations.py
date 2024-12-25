@@ -2,7 +2,7 @@ import os
 import pytest
 from git import Repo, InvalidGitRepositoryError, GitCommandError, NoSuchPathError
 from gitdb.exc import BadName
-from aicmt.git_operations import GitOperations, safe_file_operation, FileStatus, BINARY_MESSAGE, DELETED_MESSAGE
+from aicmt.git_operations import GitOperations, BINARY_MESSAGE, DELETED_MESSAGE
 from pathlib import Path
 
 
@@ -89,8 +89,7 @@ def test_stage_files(temp_git_repo):
         # Verify that the file is correctly staged
         assert "stage_test.txt" not in untracked
         # Directly check if the file name is in the index
-        assert any("stage_test.txt" in str(entry)
-                   for entry in git_ops.repo.index.entries.keys())
+        assert any("stage_test.txt" in str(entry) for entry in git_ops.repo.index.entries.keys())
 
         with pytest.raises(ValueError) as excinfo:
             git_ops.stage_files([])
@@ -305,7 +304,6 @@ def test_handle_modified_file_diff_error(temp_git_repo):
 
         # Create a Mock object for Git
         class MockGit:
-
             def diff(self, *args, **kwargs):
                 raise GitCommandError("git diff", 128)
 
@@ -391,8 +389,7 @@ def test_get_commit_changes(temp_git_repo):
         with open("test4.txt", "w") as f:
             pass  # Empty file
 
-        git_ops.repo.index.add(
-            ["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
+        git_ops.repo.index.add(["test1.txt", "test2.txt", "test3.bin", "test4.txt"])
         git_ops.repo.index.commit("Initial commit")
 
         # Make various changes
@@ -422,14 +419,10 @@ def test_get_commit_changes(temp_git_repo):
         assert len(changes) == 4
 
         # Find changes by filename
-        test1_change = next(change for change in changes
-                            if change.file == "test1.txt")
-        test2_change = next(change for change in changes
-                            if change.file == "test2.txt")
-        test3_change = next(change for change in changes
-                            if change.file == "test3.bin")
-        test5_change = next(change for change in changes
-                            if change.file == "test5.txt")
+        test1_change = next(change for change in changes if change.file == "test1.txt")
+        test2_change = next(change for change in changes if change.file == "test2.txt")
+        test3_change = next(change for change in changes if change.file == "test3.bin")
+        test5_change = next(change for change in changes if change.file == "test5.txt")
 
         # Test modified text file
         assert test1_change.status == "modified"
@@ -515,14 +508,12 @@ def test_get_staged_changes(temp_git_repo):
         assert new_file.deletions == 0
 
         # Verify new binary file
-        binary_file = next(c for c in first_changes
-                           if c.file == "new_binary.bin")
+        binary_file = next(c for c in first_changes if c.file == "new_binary.bin")
         assert binary_file.status == "new file (binary)"
         assert binary_file.diff == BINARY_MESSAGE
 
         # Verify modified file
-        modified_file = next(c for c in second_changes
-                             if c.file == "modify.txt")
+        modified_file = next(c for c in second_changes if c.file == "modify.txt")
         assert modified_file.status == "modified"
         assert "-initial" in modified_file.diff
         assert "+modified" in modified_file.diff
