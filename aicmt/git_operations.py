@@ -70,7 +70,7 @@ class GitOperations:
             self.repo = Repo(repo_path)
             self.git = self.repo.git
         except git.InvalidGitRepositoryError:
-            raise git.InvalidGitRepositoryError(f"'{repo_path}' is not a valid Git repository")
+            raise git.InvalidGitRepositoryError("Not a valid Git repository")
         except git.NoSuchPathError:
             raise git.NoSuchPathError(f"Path '{repo_path}' does not exist")
 
