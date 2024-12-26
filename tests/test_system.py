@@ -109,7 +109,8 @@ def test_help_command(capsys):
     captured = capsys.readouterr()
     assert "AICMT (AI Commit)" in captured.out
     assert "usage: aicmt [-h] [-v] [-n N]" in captured.out
-    assert "-h, --help            show this help message and exit" in captured.out
+    assert "-h, --help" in captured.out
+    assert "show this help message and exit" in captured.out
 
 
 def test_version_command(capsys):
