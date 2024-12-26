@@ -3,12 +3,13 @@ from rich.table import Table
 from rich.prompt import Confirm
 from rich.panel import Panel
 from typing import List, Dict
+from .__version__ import VERSION
 import sys
 
 console = Console()
 
 # Constants
-WELCOME_MESSAGE = "AICMT (AI Commit)\nAnalyze and organize your changes into meaningful commits"
+WELCOME_MESSAGE = f"AICMT (AI Commit) v{VERSION}\nAnalyze and organize your changes into meaningful commits"
 
 
 class CLIInterface:
