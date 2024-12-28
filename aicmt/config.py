@@ -1,6 +1,7 @@
+import os
 import configparser
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from .cli_args import parse_args
 from .cli_interface import CLIInterface
 
@@ -29,6 +30,37 @@ Respond strictly in this JSON format:
 }
 """,
 }
+
+
+def _get_xdg_config_home() -> Path:
+    """
+    Get XDG_CONFIG_HOME directory path.
+    Returns ~/.config if XDG_CONFIG_HOME is not set.
+    """
+    xdg_config_home = os.environ.get("XDG_CONFIG_HOME")
+    if xdg_config_home:
+        return Path(xdg_config_home)
+    return Path.home() / ".config"
+
+
+def _get_config_paths() -> Optional[str]:
+    """
+    Get configuration file paths in priority order:
+    1. Local configuration (./.aicmtrc)
+    2. XDG configuration ($XDG_CONFIG_HOME/aicmt/.aicmtrc or ~/.config/aicmt/.aicmtrc)
+    """
+
+    config_path = [
+        Path.cwd() / ".aicmtrc",  # Local config
+        _get_xdg_config_home() / "aicmt" / ".aicmtrc",  # XDG config
+        Path.home() / ".aicmtrc",  # Legacy global config
+    ]
+
+    for path in config_path:
+        if path.is_file():
+            return path
+
+    return None
 
 
 def _merge_configs(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -125,22 +157,60 @@ def _parse_config_file(config_path: Path) -> Dict[str, Any]:
 def _load_config_file() -> Dict[str, Any]:
     """Load configuration from .aicmtrc files following priority order:
     1. Local configuration (./.aicmtrc)
-    2. Global configuration (~/.aicmtrc)
+    2. Global configuration ($XDG_CONFIG_HOME/aicmt/.aicmtrc or ~/.config/aicmt/.aicmtrc)
+
+    Returns:
+        Dict[str, Any]: Configuration dictionary. Empty dict if no valid config found.
     """
 
     # Define configuration paths with priority
-    global_config_path = Path.home() / ".aicmtrc"
-    local_config_path = Path.cwd() / ".aicmtrc"
+    # global_config_path = Path.home() / ".aicmtrc"
+    # local_config_path = Path.cwd() / ".aicmtrc"
 
-    # First try local configuration (higher priority)
-    if local_config_path.exists() and local_config_path.is_file():
-        return _parse_config_file(local_config_path)
+    config_path = _get_config_paths()
+    if config_path:
+        return _parse_config_file(config_path)
+    else:
+        # Create default configuration file in xdg config directory if it doesn't exist.
+        xdg_config_path = _get_xdg_config_home() / "aicmt" / ".aicmtrc"
+        if not xdg_config_path.exists():
+            xdg_config_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(xdg_config_path, "w", encoding="utf-8") as f:
+                f.write(
+                    "## Configuration Example ##\n"
+                    "## More info: https://github.com/versun/aicmt ##\n"
+                    "[openai]\n"
+                    "api_key = your-api-key-here\n"
+                    "model = gpt-4o-mini\n"
+                    "base_url = https://api.openai.com/v1\n"
+                )
 
-    # Then try global configuration (lower priority)
-    if global_config_path.exists() and global_config_path.is_file():
-        return _parse_config_file(global_config_path)
+        CLIInterface.display_warning(f"Auto created configuration file in {xdg_config_path}\n" "Please check and update your configuration file.")
 
     return {}
+
+    # if not global_config_path.exists() and not local_config_path.exists() and not xdg_config_path.exists():
+    #     CLIInterface.display_error(
+    #         "No configuration file found.\n"
+    #         "Please create .aicmtrc file in the home directory with the following format:\n\n"
+    #         "## Configuration Example ##\n"
+    #         "\[openai]\n"
+    #         "api_key = your-api-key-here\n"
+    #         "model = gpt-4\n"
+    #         "base_url = https://api.openai.com/v1\n"
+    #         "## More info: https://github.com/versun/aicmt ##\n"
+    #     )
+    #     sys.exit(1)
+
+    # # First try local configuration (higher priority)
+    # if local_config_path.exists() and local_config_path.is_file():
+    #     return _parse_config_file(local_config_path)
+
+    # # Then try global configuration (lower priority)
+    # if global_config_path.exists() and global_config_path.is_file():
+    #     return _parse_config_file(global_config_path)
+
+    # return {}
 
 
 def _load_cli_config() -> Dict[str, Any]:
@@ -159,7 +229,7 @@ def load_config() -> Dict[str, Any]:
     Load configuration with strict priority order:
     1. Command line arguments (highest priority)
     2. Local configuration (./.aicmtrc)
-    3. Global configuration (~/.aicmtrc)
+    3. Global configuration ($XDG_CONFIG_HOME/aicmt/.aicmtrc or ~/.config/aicmt/.aicmtrc)
     4. Default configuration (lowest priority)
     """
     config = dict(_DEFAULT_CONFIG)
@@ -193,29 +263,21 @@ def validate_config(config: Dict[str, Any]):
     # API key validation
     if "api_key" in missing_fields:
         raise ValueError(
-            "OpenAI API key not configured. To fix this:\n"
-            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
-            "   [openai]\n"
-            "   api_key = your-api-key-here"
+            "OpenAI API key not configured. To fix this:\n" "add below configuration to .aicmtrc file:\n" "   [openai]\n" "   api_key = your-api-key-here"
         )
 
     if "model" in missing_fields:
-        raise ValueError(
-            "No model specified. To fix this:\n" "add below configuration to .aicmtrc or ~/.aicmtrc file:\n" "   [openai]\n" "   model = gpt-4o-mini"
-        )
+        raise ValueError("No model specified. To fix this:\n" "add below configuration to .aicmtrc file:\n" "   [openai]\n" "   model = gpt-4o-mini")
 
     if "base_url" in missing_fields:
         raise ValueError(
-            "No base URL specified. To fix this:\n"
-            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
-            "   [openai]\n"
-            "   base_url = https://your-base-url.com"
+            "No base URL specified. To fix this:\n" "add below configuration to .aicmtrc file:\n" "   [openai]\n" "   base_url = https://your-base-url.com"
         )
 
     if "analysis_prompt" in missing_fields:
         raise ValueError(
             "No analysis prompt specified. To fix this:\n"
-            "add below configuration to .aicmtrc or ~/.aicmtrc file:\n"
+            "add below configuration to .aicmtrc file:\n"
             "   [prompts]\n"
             "   analysis_prompt = Your analysis prompt here"
         )

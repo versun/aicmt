@@ -395,3 +395,18 @@ def test_validate_config_short_prompt(capsys):
     validate_config(config)
     captured = capsys.readouterr()
     assert captured.out == ""
+
+
+def test_get_xdg_config_home(monkeypatch, tmp_path):
+    from aicmt.config import _get_xdg_config_home
+    from pathlib import Path
+
+    # Test when XDG_CONFIG_HOME is set
+    test_path = str(tmp_path / "config")
+    monkeypatch.setenv("XDG_CONFIG_HOME", test_path)
+    assert _get_xdg_config_home() == Path(test_path)
+
+    # Test when XDG_CONFIG_HOME is not set
+    monkeypatch.delenv("XDG_CONFIG_HOME")
+    expected_path = Path.home() / ".config"
+    assert _get_xdg_config_home() == expected_path

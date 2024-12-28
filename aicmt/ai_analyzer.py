@@ -123,7 +123,7 @@ class AIAnalyzer:
         except OpenAIError as e:
             error_msg = str(e)
             if "invalid_api_key" in error_msg:
-                raise ValueError("Invalid OpenAI API key. Please set the API key in the .aicmtrc configuration file")
+                raise ValueError("Invalid OpenAI API key. Please set the API key in .aicmtrc file")
             elif "rate_limit" in error_msg:
                 raise ValueError(
                     "OpenAI API rate limit exceeded. Suggestions:\n"
