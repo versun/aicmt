@@ -30,9 +30,9 @@ brew install versun/tap/aicmt
 
 Reference the template file [`.aicmtrc.template`](./.aicmtrc.template) and create `.aicmtrc` in your home directory.
 ```bash
-cp .aicmtrc.template ~/.aicmtrc
+cp .aicmtrc.template ~/.config/aicmt/.aicmtrc
 ```
-You can also create `.aicmtrc` in the current directory, which will override the global configuration file (~/.aicmtrc)
+You can also create `.aicmtrc` in the current directory, which will override the global configuration file (~/.config/aicmt/.aicmtrc)
 ```bash
 cd /path/to/git/repo
 touch .aicmtrc

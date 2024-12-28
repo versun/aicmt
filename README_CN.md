@@ -27,17 +27,17 @@ brew install versun/tap/aicmt
 
 1. 创建配置文件`.aicmtrc`
 
-参考模板文件[`.aicmtrc.template`](./.aicmtrc.template)，并在用户目录下创建`.aicmtrc`文件。
+参考模板文件[`.aicmtrc.template`](./.aicmtrc.template),并在用户目录下创建`.aicmtrc`文件。
 ```bash
-cp .aicmtrc.template ～/.aicmtrc
+cp .aicmtrc.template ~/.config/aicmt/.aicmtrc
 ```
-也可在当前目录下创建`.aicmtrc`文件，将会覆盖全局的配置文件(~/.aicmtrc)
+也可在当前目录下创建`.aicmtrc`文件，将会覆盖全局的配置文件(~/.config/aicmt/.aicmtrc)
 ```bash
 cd /path/to/git/repo
 touch .aicmtrc
 ```
 
-2. 在配置文件中添加OpenAI API等信息：
+2. 在配置文件中添加OpenAI API等信息，并保存。
 
 3. 进入git仓库目录内，执行`aicmt`命令，即可自动分析变更并生成提交信息。
 

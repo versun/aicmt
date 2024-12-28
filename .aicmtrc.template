@@ -1,25 +1,16 @@
-
 ################################################
 # AICMT (AI Commit) Configuration Template
 #
 # Configuration File Location and Priority:
-# 1. Global Config: ~/.aicmtrc
+# 
+# 1. Global Config: ~/.config/aicmt/.aicmtrc
 #    - Default settings for all projects
 #    - Typically stores API keys and common configs
 #
-# 2. Project Config: ./.aicmtrc (current directory)
+# 2. Project Config: ./.aicmtrc (project directory)
 #    - Specific to current project
 #    - Higher priority than global config
 #    - Suitable for project-specific prompts and settings
-#
-# Usage:
-# 1. Copy this template to desired location (global or project directory)
-# 2. Rename file to .aicmtrc
-# 3. Modify configuration as needed
-#
-# Important Notes:
-# - File must be saved with UTF-8 encoding
-# - Configuration names are case-sensitive
 ################################################
 
 [openai]
