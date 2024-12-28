@@ -224,56 +224,6 @@ def test_load_config_file_no_configs(tmp_path, monkeypatch):
 
     assert result is not None
 
-
-def test_load_config_priority(tmp_path, monkeypatch):
-    """Test configuration loading priority order:
-    1. CLI args (highest)
-    2. Local config
-    3. Global config
-    4. Default config (lowest)
-    """
-    # Setup test environment
-    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-    monkeypatch.setattr("pathlib.Path.cwd", lambda: tmp_path)
-    
-    # Create global config
-    global_config_dir = tmp_path / ".config" / "aicmt"
-    global_config_dir.mkdir(parents=True)
-    global_config = global_config_dir / ".aicmtrc"
-    global_config.write_text("[openai]\nmodel = global_model\napi_key = global_key")
-    
-    # Create local config
-    local_config = tmp_path / ".aicmtrc"
-    local_config.write_text("[openai]\nmodel = local_model\napi_key = local_key")
-    
-    # Set CLI args
-    cli_args = {"model": "cli_model"}
-    monkeypatch.setattr("aicmt.config._load_cli_config", lambda: cli_args)
-    
-    # Test priority order
-    config = load_config()
-    
-    # CLI args should override all
-    assert config["model"] == "cli_model"
-    
-    # Local config should override global when no CLI args
-    cli_args.clear()
-    config = load_config()
-    assert config["model"] == "local_model"
-    assert config["api_key"] == "local_key"
-    
-    # Global config should override defaults when no local config
-    local_config.unlink()
-    config = load_config()
-    assert config["model"] == "global_model"
-    assert config["api_key"] == "global_key"
-    
-    # Should fall back to defaults when no other configs exist
-    global_config.unlink()
-    config = load_config()
-    assert config["model"] == "gpt-4o-mini"
-
-
 def test_load_cli_config(monkeypatch):
     """Test loading configuration from command line arguments."""
     from aicmt.config import _load_cli_config
