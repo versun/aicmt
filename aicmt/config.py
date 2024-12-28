@@ -186,8 +186,7 @@ def _load_config_file() -> Dict[str, Any]:
                 )
 
         CLIInterface.display_warning(f"Auto created configuration file in {xdg_config_path}\n" "Please check and update your configuration file.")
-
-    return {}
+        return _parse_config_file(xdg_config_path)
 
     # if not global_config_path.exists() and not local_config_path.exists() and not xdg_config_path.exists():
     #     CLIInterface.display_error(
