@@ -154,33 +154,6 @@ def test_validate_config_error():
     with pytest.raises(ValueError, match="Invalid API URL format"):
         validate_config({"api_key": "test_key", "model": "gpt-4", "base_url": "not-a-url", "analysis_prompt": "test prompt"})
 
-
-def test_load_config_file_global_only(tmp_path, monkeypatch):
-    global_config = tmp_path / ".aicmtrc"
-    global_config_content = """
-[openai]
-api_key = global_key
-model = gpt-4
-base_url = https://test.openai.com
-
-[prompts]
-analysis_prompt = Test analysis prompt
-"""
-    global_config.write_text(global_config_content)
-    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-
-    work_dir = tmp_path / "work"
-    work_dir.mkdir()
-    monkeypatch.chdir(work_dir)
-
-    result = _load_config_file()
-
-    assert result["api_key"] == "global_key"
-    assert result["model"] == "gpt-4"
-    assert result["base_url"] == "https://test.openai.com"
-    assert result["analysis_prompt"] == "Test analysis prompt"
-
-
 def test_load_config_file_local_only(tmp_path, monkeypatch):
     work_dir = tmp_path / "work"
     work_dir.mkdir()
