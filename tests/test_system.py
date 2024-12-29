@@ -5,11 +5,11 @@ from unittest.mock import patch
 import git
 from aicmt.cli import AiCommit
 
-def test_help_command(capsys):
+def test_help_command(capsys, mock_repo):
     """Test help command output"""
     with patch.object(sys, "argv", ["aicmt", "-h"]):
         with pytest.raises(SystemExit) as e:
-            AiCommit()
+            AiCommit(mock_repo)
         assert e.value.code == 0
 
     captured = capsys.readouterr()
@@ -19,11 +19,11 @@ def test_help_command(capsys):
     assert "show this help message and exit" in captured.out
 
 
-def test_version_command(capsys):
+def test_version_command(capsys, mock_repo):
     """Test version command output"""
     with patch.object(sys, "argv", ["aicmt", "-v"]):
         with pytest.raises(SystemExit) as e:
-            AiCommit()
+            AiCommit(mock_repo)
         assert e.value.code == 0
     from aicmt import __version__
 
@@ -47,6 +47,17 @@ def test_no_config_file(capsys, mock_repo):
             AiCommit(mock_repo)
     captured = capsys.readouterr()
     assert "Please check and update your configuration file." in captured.out
+
+def test_auto_create_config(capsys, mock_repo, mock_home_dir):
+    """Test no configuration file"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
+    with patch.object(sys, "argv", ["aicmt"]):
+        AiCommit(mock_repo)
+    captured = capsys.readouterr()
+    assert "Please check and update your configuration file." in captured.out
+    assert "Auto created configuration file in" in captured.out
+    assert config_file.exists()
 
 
 def test_no_changes(ai_commit, mock_repo, mock_openai, mock_config):
