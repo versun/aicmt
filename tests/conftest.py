@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -11,6 +12,9 @@ root_dir = Path(__file__).parent.parent
 
 sys.path.insert(0, str(root_dir))
 
+@pytest.fixture(params=["Linux", "Darwin", "Windows"], autouse=True)
+def platform_system(request, monkeypatch):
+    monkeypatch.setattr(platform, "system", lambda: request.param)
 
 @pytest.fixture(autouse=True)
 def mock_argv():
@@ -26,6 +30,11 @@ def mock_config():
     with patch("aicmt.ai_analyzer.load_config", return_value=config), patch("aicmt.config.load_config", return_value=config):
         yield config
 
+@pytest.fixture
+def mock_home_dir(tmp_path):
+    """Mock home directory"""
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        yield tmp_path
 
 @pytest.fixture
 def mock_repo(tmp_path):
