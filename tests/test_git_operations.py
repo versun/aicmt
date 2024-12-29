@@ -675,8 +675,8 @@ def test_is_binary_file(temp_git_repo):
     assert not git_ops._is_binary_file(error_file)
 
 
-def test_get_file_content(tmp_path):
-    git_ops = GitOperations()
+def test_get_file_content(tmp_path, temp_git_repo):
+    git_ops = GitOperations(temp_git_repo)
 
     # Test text file
     text_file = tmp_path / "test.txt"
