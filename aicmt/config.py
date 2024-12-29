@@ -184,8 +184,9 @@ def _load_config_file() -> Dict[str, Any]:
                     "model = gpt-4o-mini\n"
                     "base_url = https://api.openai.com/v1\n"
                 )
+            CLIInterface.display_info(f"Auto created configuration file in {xdg_config_path}")
 
-        CLIInterface.display_warning(f"Auto created configuration file in {xdg_config_path}\n" "Please check and update your configuration file.")
+        CLIInterface.display_info("Please check and update your configuration file.")
         return _parse_config_file(xdg_config_path)
 
     # if not global_config_path.exists() and not local_config_path.exists() and not xdg_config_path.exists():
