@@ -6,10 +6,10 @@ An AI-powered Git commit assistant that not only generates commit messages, but 
 [![aicmt](https://asciinema.org/a/695352.svg)](https://asciinema.org/a/695352/?autoplay=1)
 
 ## Features
-
-- **Intelligent Change Splitting**: Unlike traditional commit message generators, aicmt analyzes your code changes and automatically splits them into logical, focused commits following Git best practices
-- **Flexible Control**: You can let AI decide the optimal number of commits, or specify exactly how many commits you want
-- **Focus on Coding**: Make all your changes freely, and let AI handle the commit organization - no need to worry about making perfect atomic commits while coding
+- Analyzes code changes and splits them into logical commits
+- Generates descriptive commit messages for each split
+- Allows specifying number of commits or letting AI decide
+- Works with any git repository
 
 ## Installation
 
