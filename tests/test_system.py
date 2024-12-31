@@ -10,7 +10,7 @@ def test_help_command(capsys, mock_repo):
     """Test help command output"""
     with patch.object(sys, "argv", ["aicmt", "-h"]):
         with pytest.raises(SystemExit) as e:
-            AiCommit(mock_repo)
+            AiCommit(mock_repo).run()
         assert e.value.code == 0
 
     captured = capsys.readouterr()
@@ -24,7 +24,7 @@ def test_version_command(capsys, mock_repo):
     """Test version command output"""
     with patch.object(sys, "argv", ["aicmt", "-v"]):
         with pytest.raises(SystemExit) as e:
-            AiCommit(mock_repo)
+            AiCommit(mock_repo).run()
         assert e.value.code == 0
     from aicmt import __version__
 
@@ -37,15 +37,16 @@ def test_no_args_without_repo(tmp_path):
     os.chdir(tmp_path)
     with patch.object(sys, "argv", ["aicmt"]):
         with pytest.raises(git.exc.InvalidGitRepositoryError) as exc_info:
-            AiCommit(tmp_path)
+            AiCommit(tmp_path).run()
         assert str(exc_info.value) == "Not a valid Git repository"
 
 
-def test_no_config_file(capsys, mock_repo):
+def test_no_config_file(capsys, mock_repo, mock_home_dir):
     """Test no configuration file"""
     with patch.object(sys, "argv", ["aicmt"]):
-        with patch("aicmt.config._get_config_paths", return_value=None):
-            AiCommit(mock_repo)
+        with pytest.raises(SystemExit) as e:
+            AiCommit(mock_repo).run()
+        assert e.value.code == 0
     captured = capsys.readouterr()
     assert "Please check and update your configuration file." in captured.out
 
@@ -54,7 +55,9 @@ def test_auto_create_config(capsys, mock_repo, mock_home_dir):
     config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
     assert not config_file.exists()
     with patch.object(sys, "argv", ["aicmt"]):
-        AiCommit(mock_repo)
+        with pytest.raises(SystemExit) as e:
+            AiCommit(mock_repo).run()
+        assert e.value.code == 0
     #captured = capsys.readouterr()
     #assert "Please check and update your configuration file." in captured.out
     #assert "Auto created configuration file in" in captured.out
