@@ -1,5 +1,6 @@
 # Project
 .aicmtrc
+tmp
 
 # Python
 __pycache__/
