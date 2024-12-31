@@ -6,21 +6,22 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 from git import Repo
 import json
-from aicmt.cli import AiCommit
 
 root_dir = Path(__file__).parent.parent
 
 sys.path.insert(0, str(root_dir))
 
+
 @pytest.fixture(params=["Linux", "Darwin", "Windows"], autouse=True)
 def platform_system(request, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: request.param)
 
-@pytest.fixture(autouse=True)
-def mock_argv():
-    """Mock command line arguments"""
-    with patch.object(sys, "argv", ["aicmt"]):
-        yield
+
+# @pytest.fixture(autouse=True)
+# def mock_argv():
+#     """Mock command line arguments"""
+#     with patch.object(sys, "argv", ["aicmt"]):
+#         yield
 
 
 @pytest.fixture
@@ -30,11 +31,14 @@ def mock_config():
     with patch("aicmt.ai_analyzer.load_config", return_value=config), patch("aicmt.config.load_config", return_value=config):
         yield config
 
+
 @pytest.fixture
 def mock_home_dir(tmp_path):
     """Mock home directory"""
-    with patch("pathlib.Path.home", return_value=tmp_path):
-        yield tmp_path
+    home = tmp_path / "home"
+    with patch("pathlib.Path.home", return_value=home):
+        yield home
+
 
 @pytest.fixture
 def mock_repo(tmp_path):
@@ -47,12 +51,6 @@ def mock_repo(tmp_path):
         config.set_value("user", "name", "Test User")
         config.set_value("user", "email", "test@example.com")
     return str(repo_path)
-
-
-@pytest.fixture
-def ai_commit(mock_repo, mock_config):
-    """Create an AiCommit instance with mocked dependencies"""
-    return AiCommit(mock_repo)
 
 
 @pytest.fixture

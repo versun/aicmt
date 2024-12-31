@@ -49,12 +49,14 @@ def _get_config_paths() -> Optional[str]:
     1. Local configuration (./.aicmtrc)
     2. XDG configuration ($XDG_CONFIG_HOME/aicmt/.aicmtrc or ~/.config/aicmt/.aicmtrc)
     """
-
+    xdg_config_path = _get_xdg_config_home() / "aicmt"
     config_path = [
         Path.cwd() / ".aicmtrc",  # Local config
-        _get_xdg_config_home() / "aicmt" / ".aicmtrc",  # XDG config
+        xdg_config_path / ".aicmtrc",  # XDG config
         Path.home() / ".aicmtrc",  # Legacy global config
     ]
+
+    xdg_config_path.mkdir(parents=True, exist_ok=True)
 
     for path in config_path:
         if path.is_file():
@@ -184,8 +186,9 @@ def _load_config_file() -> Dict[str, Any]:
                     "model = gpt-4o-mini\n"
                     "base_url = https://api.openai.com/v1\n"
                 )
+            CLIInterface.display_info(f"Auto created configuration file in {xdg_config_path}")
 
-        CLIInterface.display_warning(f"Auto created configuration file in {xdg_config_path}\n" "Please check and update your configuration file.")
+        CLIInterface.display_info("Please check and update your configuration file.")
         return _parse_config_file(xdg_config_path)
 
     # if not global_config_path.exists() and not local_config_path.exists() and not xdg_config_path.exists():
