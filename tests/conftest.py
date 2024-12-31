@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 from git import Repo
 import json
-from aicmt.cli import AiCommit
 
 root_dir = Path(__file__).parent.parent
 
@@ -47,13 +46,6 @@ def mock_repo(tmp_path):
         config.set_value("user", "name", "Test User")
         config.set_value("user", "email", "test@example.com")
     return str(repo_path)
-
-
-@pytest.fixture
-def ai_commit(mock_repo, mock_config):
-    """Create an AiCommit instance with mocked dependencies"""
-    return AiCommit(mock_repo)
-
 
 @pytest.fixture
 def mock_openai():
