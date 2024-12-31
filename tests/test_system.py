@@ -6,8 +6,10 @@ import git
 from aicmt.cli import AiCommit
 from pathlib import Path
 
-def test_help_command(capsys, mock_repo):
+def test_help_command(capsys, mock_repo,mock_home_dir):
     """Test help command output"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
     with patch.object(sys, "argv", ["aicmt", "-h"]):
         with pytest.raises(SystemExit) as e:
             AiCommit(mock_repo).run()
@@ -20,8 +22,10 @@ def test_help_command(capsys, mock_repo):
     assert "show this help message and exit" in captured.out
 
 
-def test_version_command(capsys, mock_repo):
+def test_version_command(capsys, mock_repo, mock_home_dir):
     """Test version command output"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
     with patch.object(sys, "argv", ["aicmt", "-v"]):
         with pytest.raises(SystemExit) as e:
             AiCommit(mock_repo).run()
@@ -32,8 +36,10 @@ def test_version_command(capsys, mock_repo):
     assert f"{__version__.VERSION}" in captured.out
 
 
-def test_no_args_without_repo(tmp_path):
+def test_no_args_without_repo(tmp_path, mock_home_dir):
     """Test no arguments without a git repository"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
     os.chdir(tmp_path)
     with patch.object(sys, "argv", ["aicmt"]):
         with pytest.raises(git.exc.InvalidGitRepositoryError) as exc_info:
@@ -43,6 +49,8 @@ def test_no_args_without_repo(tmp_path):
 
 def test_no_config_file(capsys, mock_repo, mock_home_dir):
     """Test no configuration file"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
     with patch.object(sys, "argv", ["aicmt"]):
         with pytest.raises(SystemExit) as e:
             AiCommit(mock_repo).run()
@@ -69,6 +77,9 @@ def test_auto_create_config(capsys, mock_repo, mock_home_dir):
 
 def test_read_global_config(capsys, mock_repo, mock_home_dir):
     """Test reading global configuration file"""
+    config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
+    assert not config_file.exists()
+    
     config_dir = mock_home_dir / ".config/aicmt"
     config_content = """
 [openai]
