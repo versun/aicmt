@@ -15,11 +15,11 @@ sys.path.insert(0, str(root_dir))
 def platform_system(request, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: request.param)
 
-@pytest.fixture(autouse=True)
-def mock_argv():
-    """Mock command line arguments"""
-    with patch.object(sys, "argv", ["aicmt"]):
-        yield
+# @pytest.fixture(autouse=True)
+# def mock_argv():
+#     """Mock command line arguments"""
+#     with patch.object(sys, "argv", ["aicmt"]):
+#         yield
 
 
 @pytest.fixture
