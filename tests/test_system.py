@@ -57,6 +57,7 @@ def test_no_config_file(capsys, mock_repo, mock_home_dir):
         assert e.value.code == 0
     captured = capsys.readouterr()
     assert "Please check and update your configuration file." in captured.out
+    assert "Auto created configuration file in" in captured.out
 
 def test_auto_create_config(capsys, mock_repo, mock_home_dir):
     """Test no configuration file"""
@@ -66,9 +67,7 @@ def test_auto_create_config(capsys, mock_repo, mock_home_dir):
         with pytest.raises(SystemExit) as e:
             AiCommit(mock_repo).run()
         assert e.value.code == 0
-    #captured = capsys.readouterr()
-    #assert "Please check and update your configuration file." in captured.out
-    #assert "Auto created configuration file in" in captured.out
+        
     assert config_file.exists()
     assert "[openai]" in config_file.read_text()
     assert "api_key = your-api-key-here" in config_file.read_text()
@@ -79,7 +78,7 @@ def test_read_global_config(capsys, mock_repo, mock_home_dir):
     """Test reading global configuration file"""
     config_file = mock_home_dir / ".config/aicmt/.aicmtrc"
     assert not config_file.exists()
-    
+
     config_dir = mock_home_dir / ".config/aicmt"
     config_content = """
 [openai]

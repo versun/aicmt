@@ -32,8 +32,9 @@ def mock_config():
 @pytest.fixture
 def mock_home_dir(tmp_path):
     """Mock home directory"""
-    with patch("pathlib.Path.home", return_value=tmp_path):
-        yield tmp_path
+    home = tmp_path / "home"
+    with patch("pathlib.Path.home", return_value=home):
+        yield home
 
 @pytest.fixture
 def mock_repo(tmp_path):
