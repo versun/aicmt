@@ -49,12 +49,14 @@ def _get_config_paths() -> Optional[str]:
     1. Local configuration (./.aicmtrc)
     2. XDG configuration ($XDG_CONFIG_HOME/aicmt/.aicmtrc or ~/.config/aicmt/.aicmtrc)
     """
-
+    xdg_config_path = _get_xdg_config_home() / "aicmt"
     config_path = [
         Path.cwd() / ".aicmtrc",  # Local config
-        _get_xdg_config_home() / "aicmt" / ".aicmtrc",  # XDG config
+        xdg_config_path / ".aicmtrc",  # XDG config
         Path.home() / ".aicmtrc",  # Legacy global config
     ]
+
+    xdg_config_path.mkdir(parents=True, exist_ok=True)
 
     for path in config_path:
         if path.is_file():
