@@ -11,9 +11,11 @@ root_dir = Path(__file__).parent.parent
 
 sys.path.insert(0, str(root_dir))
 
+
 @pytest.fixture(params=["Linux", "Darwin", "Windows"], autouse=True)
 def platform_system(request, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: request.param)
+
 
 # @pytest.fixture(autouse=True)
 # def mock_argv():
@@ -29,12 +31,14 @@ def mock_config():
     with patch("aicmt.ai_analyzer.load_config", return_value=config), patch("aicmt.config.load_config", return_value=config):
         yield config
 
+
 @pytest.fixture
 def mock_home_dir(tmp_path):
     """Mock home directory"""
     home = tmp_path / "home"
     with patch("pathlib.Path.home", return_value=home):
         yield home
+
 
 @pytest.fixture
 def mock_repo(tmp_path):
@@ -47,6 +51,7 @@ def mock_repo(tmp_path):
         config.set_value("user", "name", "Test User")
         config.set_value("user", "email", "test@example.com")
     return str(repo_path)
+
 
 @pytest.fixture
 def mock_openai():

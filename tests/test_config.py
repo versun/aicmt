@@ -154,6 +154,7 @@ def test_validate_config_error():
     with pytest.raises(ValueError, match="Invalid API URL format"):
         validate_config({"api_key": "test_key", "model": "gpt-4", "base_url": "not-a-url", "analysis_prompt": "test prompt"})
 
+
 def test_load_config_file_local_only(tmp_path, monkeypatch):
     work_dir = tmp_path / "work"
     work_dir.mkdir()
@@ -223,6 +224,7 @@ def test_load_config_file_no_configs(tmp_path, monkeypatch):
     result = load_config()
 
     assert result is not None
+
 
 def test_load_cli_config(monkeypatch):
     """Test loading configuration from command line arguments."""
