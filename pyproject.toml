@@ -43,7 +43,7 @@ Issues = "https://github.com/versun/aicmt/issues"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "--cov=aicmt --cov-report=term-missing --cov-report=html --cov-fail-under=80"
+addopts = "--cov=aicmt --cov-report=term-missing --cov-report=html --cov-fail-under=80 -p no:cacheprovider --basetemp=tmp"
 
 [tool.coverage.run]
 source = ["aicmt"]
